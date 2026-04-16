@@ -1,78 +1,66 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="d-flex justify-content-between align-items-center">
+    <style>
+        /* Estilos originales de tus tarjetas */
+        .kpi-card { background-color: white; border: none; border-radius: 8px; border-left: 5px solid; transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+        .border-l-primary { border-left-color: #0d6efd !important; }
+        .border-l-success { border-left-color: #198754 !important; }
+        .border-l-danger { border-left-color: #dc3545 !important; }
+        .border-l-warning { border-left-color: #ffc107 !important; }
+        .card-custom { background-color: white; border: 1px solid #dee2e6; border-radius: 10px; }
+    </style>
+
+    <div class="container py-2">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="h5 mb-0 text-white"><i class="bi bi-grid-1x2-fill text-success me-2"></i> Panel de Control</h2>
+                <h2 class="h4 mb-0 text-dark-custom fw-bold"><i class="bi bi-grid-1x2-fill text-success me-2"></i> Panel de Control</h2>
                 <small class="text-muted">Resumen general de operaciones del gimnasio.</small>
             </div>
-            <a href="{{ route('clientes.create') }}" class="btn btn-success btn-sm fw-bold">
+            <a href="{{ route('clientes.create') }}" class="btn btn-success fw-bold shadow-sm">
                 <i class="bi bi-person-plus-fill"></i> Nuevo Cliente
             </a>
         </div>
-    </x-slot>
 
-    <div class="container">
-        
-        <div class="card card-dark mb-4 shadow-sm border-0">
-            <div class="card-body py-4">
-                <h4 class="text-white mb-1">¡Hola, {{ Auth::user()->name ?? 'Administrador' }}! 👋</h4>
+        <div class="card card-custom shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h4 class="text-dark-custom mb-1 fw-bold">¡Hola, {{ Auth::user()->name ?? 'Administrador' }}! 👋</h4>
                 <p class="text-muted mb-0">Aquí tienes las métricas clave de tus clientes en tiempo real.</p>
             </div>
         </div>
 
         <div class="row g-4 mb-4">
             <div class="col-md-6 col-lg-3">
-                <div class="card card-dark h-100 shadow-sm border-start border-primary border-4">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="bg-primary bg-opacity-25 p-3 rounded text-primary me-3">
-                            <i class="bi bi-people fs-4"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-1 small text-uppercase fw-bold">Registrados</h6>
-                            <h3 class="mb-0 text-white fw-bold">{{ \App\Models\Cliente::count() }}</h3>
-                        </div>
+                <div class="card kpi-card border-l-primary shadow-sm h-100">
+                    <div class="card-body">
+                        <p class="text-muted mb-1 small text-uppercase fw-bold">Registrados</p>
+                        <h3 class="mb-0 text-dark-custom fw-bold">{{ \App\Models\Cliente::count() }}</h3>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-6 col-lg-3">
-                <div class="card card-dark h-100 shadow-sm border-start border-success border-4">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="bg-success bg-opacity-25 p-3 rounded text-success me-3">
-                            <i class="bi bi-check-circle fs-4"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-1 small text-uppercase fw-bold">Activas</h6>
-                            <h3 class="mb-0 text-white fw-bold">{{ \App\Models\Cliente::where('estado','activa')->count() }}</h3>
-                        </div>
+                <div class="card kpi-card border-l-success shadow-sm h-100">
+                    <div class="card-body">
+                        <p class="text-muted mb-1 small text-uppercase fw-bold">Membresías Activas</p>
+                        <h3 class="mb-0 text-dark-custom fw-bold">{{ \App\Models\Cliente::where('estado','activa')->count() }}</h3>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-6 col-lg-3">
-                <div class="card card-dark h-100 shadow-sm border-start border-danger border-4">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="bg-danger bg-opacity-25 p-3 rounded text-danger me-3">
-                            <i class="bi bi-x-circle fs-4"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-1 small text-uppercase fw-bold">Inactivas</h6>
-                            <h3 class="mb-0 text-white fw-bold">{{ \App\Models\Cliente::where('estado','inactiva')->count() }}</h3>
-                        </div>
+                <div class="card kpi-card border-l-danger shadow-sm h-100">
+                    <div class="card-body">
+                        <p class="text-muted mb-1 small text-uppercase fw-bold">Inactivas</p>
+                        <h3 class="mb-0 text-dark-custom fw-bold">{{ \App\Models\Cliente::where('estado','inactiva')->count() }}</h3>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-6 col-lg-3">
-                <div class="card card-dark h-100 shadow-sm border-start border-warning border-4">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="bg-warning bg-opacity-25 p-3 rounded text-warning me-3">
-                            <i class="bi bi-clock-history fs-4"></i>
-                        </div>
-                        <div>
-                            <h6 class="text-muted mb-1 small text-uppercase fw-bold">Vencen (< 7 días)</h6>
-                            <h3 class="mb-0 text-white fw-bold">{{ \App\Models\Cliente::whereDate('vigencia_hasta','<=', now()->addDays(7))->count() }}</h3>
-                        </div>
+                <div class="card kpi-card border-l-warning shadow-sm h-100">
+                    <div class="card-body">
+                        <p class="text-muted mb-1 small text-uppercase fw-bold">Vencen (< 7 días)</p>
+                        <h3 class="mb-0 text-dark-custom fw-bold">{{ \App\Models\Cliente::whereDate('vigencia_hasta','<=', now()->addDays(7))->count() }}</h3>
                     </div>
                 </div>
             </div>
@@ -81,16 +69,16 @@
         <div class="row g-4">
             
             <div class="col-lg-4">
-                <div class="card card-dark shadow-sm h-100">
-                    <div class="card-header border-secondary bg-transparent pt-3 pb-2">
-                        <h6 class="text-white fw-bold mb-0">Accesos Rápidos</h6>
+                <div class="card card-custom shadow-sm h-100">
+                    <div class="card-header bg-white pt-3 pb-2">
+                        <h6 class="text-dark-custom fw-bold mb-0">Accesos Rápidos</h6>
                     </div>
                     <div class="card-body d-grid gap-3">
-                        <a href="{{ route('clientes.create') }}" class="btn btn-success fw-bold text-start p-3 d-flex justify-content-between align-items-center">
+                        <a href="{{ route('clientes.create') }}" class="btn btn-success fw-bold text-start p-3 d-flex justify-content-between align-items-center shadow-sm">
                             <span><i class="bi bi-person-plus me-2"></i> Inscribir Cliente</span>
                             <i class="bi bi-chevron-right"></i>
                         </a>
-                        <a href="{{ route('clientes.index') }}" class="btn btn-outline-light text-start p-3 d-flex justify-content-between align-items-center">
+                        <a href="{{ route('clientes.index') }}" class="btn btn-outline-dark fw-bold text-start p-3 d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-card-list me-2"></i> Ver Directorio</span>
                             <i class="bi bi-chevron-right"></i>
                         </a>
@@ -99,28 +87,28 @@
             </div>
 
             <div class="col-lg-8">
-                <div class="card card-dark shadow-sm h-100">
-                    <div class="card-header border-secondary bg-transparent pt-3 pb-2 d-flex justify-content-between align-items-center">
-                        <h6 class="text-white fw-bold mb-0">Últimos Registros</h6>
-                        <a href="{{ route('clientes.index') }}" class="text-success text-decoration-none small">Ver todos</a>
+                <div class="card card-custom shadow-sm h-100">
+                    <div class="card-header bg-white pt-3 pb-2 d-flex justify-content-between align-items-center">
+                        <h6 class="text-dark-custom fw-bold mb-0">Últimos Registros</h6>
+                        <a href="{{ route('clientes.index') }}" class="text-success text-decoration-none small fw-bold">Ver todos</a>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-dark table-hover mb-0 align-middle">
-                                <thead>
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
                                     <tr>
-                                        <th class="ps-4">Nombre</th>
-                                        <th>Membresía</th>
-                                        <th>Vigencia</th>
-                                        <th>Estado</th>
+                                        <th class="ps-4 text-muted">Nombre</th>
+                                        <th class="text-muted">Membresía</th>
+                                        <th class="text-muted">Vigencia</th>
+                                        <th class="text-muted">Estado</th>
                                     </tr>
                                 </thead>
-                                <tbody class="border-top-0">
+                                <tbody>
                                     @forelse(\App\Models\Cliente::orderBy('id','desc')->take(5)->get() as $c)
                                         <tr>
-                                            <td class="ps-4 text-white fw-semibold">{{ $c->nombre }}</td>
+                                            <td class="ps-4 fw-bold text-dark-custom">{{ $c->nombre }}</td>
                                             <td><span class="badge bg-secondary">{{ ucfirst($c->membresia) }}</span></td>
-                                            <td class="text-muted">{{ \Carbon\Carbon::parse($c->vigencia_hasta)->format('d/m/Y') }}</td>
+                                            <td class="text-muted small">{{ \Carbon\Carbon::parse($c->vigencia_hasta)->format('d/m/Y') }}</td>
                                             <td>
                                                 @if($c->estado === 'activa')
                                                     <span class="badge bg-success bg-opacity-25 text-success border border-success">Activa</span>
@@ -131,7 +119,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center py-4 text-muted">Aún no hay clientes registrados en la base de datos.</td>
+                                            <td colspan="4" class="text-center py-4 text-muted">Aún no hay clientes registrados.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>

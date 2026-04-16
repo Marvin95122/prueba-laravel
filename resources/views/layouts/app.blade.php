@@ -11,18 +11,17 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        /* Colores Base del Sistema Oscuro */
-        body { background-color: #0f172a !important; color: #f8fafc !important; }
-        .navbar { background-color: #1e293b !important; border-bottom: 3px solid #198754 !important; }
-        .bg-custom-header { background-color: #1e293b !important; border-bottom: 1px solid #334155 !important; }
-        footer { background-color: #020617 !important; border-top: 1px solid #1e293b !important; }
-        .card-dark { background-color: #1e293b !important; border: 1px solid #334155 !important; }
+        /* TUS COLORES ORIGINALES DEL MODO CLARO */
+        body { background-color: #f4f6f9 !important; color: #212529 !important; }
+        .navbar-custom { background-color: #212529 !important; border-bottom: 3px solid #1f7c34 !important; }
+        .text-dark-custom { color: #212529 !important; }
+        footer { background-color: #212529 !important; color: white !important; }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
 
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm py-3">
             <div class="container-fluid px-4">
                 <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ route('dashboard') }}">
                     <i class="bi bi-heart-pulse-fill text-success"></i> GymControl
@@ -52,13 +51,13 @@
                             </a>
                         </li>
 
-                        <li class="nav-item d-flex align-items-center ms-lg-3 border-start border-secondary ps-lg-3 mt-3 mt-lg-0 pt-3 pt-lg-0">
+                        <li class="nav-item d-flex align-items-center ms-lg-4 border-start border-secondary ps-lg-4 mt-3 mt-lg-0 pt-3 pt-lg-0">
                             <span class="text-light me-3 fw-semibold">
                                 <i class="bi bi-person-circle text-success me-1"></i> {{ Auth::user()->name ?? 'Usuario' }}
                             </span>
                             <form method="POST" action="{{ route('logout') }}" class="m-0">
                                 @csrf
-                                <button class="btn btn-danger btn-sm fw-bold px-3 d-flex align-items-center gap-2" type="submit">
+                                <button class="btn btn-outline-danger btn-sm fw-bold px-3 d-flex align-items-center gap-2" type="submit">
                                     <i class="bi bi-box-arrow-right"></i> Salir
                                 </button>
                             </form>
@@ -69,19 +68,11 @@
         </nav>
     </header>
 
-    @isset($header)
-        <section class="bg-custom-header shadow-sm">
-            <div class="container-fluid px-4 py-3">
-                {{ $header }}
-            </div>
-        </section>
-    @endisset
-
     <main class="flex-grow-1 py-4">
         {{ $slot }}
     </main>
 
-    <footer class="text-center py-4 mt-auto text-muted">
+    <footer class="text-center py-4 mt-auto">
         <p class="mb-0 small">&copy; {{ date('Y') }} GymControl. Todos los derechos reservados.</p>
     </footer>
 
