@@ -1,30 +1,41 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClienteController;
+// use App\Http\Controllers\AsistenciaController; // Se usará en el próximo paso
+// use App\Http\Controllers\PagoController; // Se usará en el próximo paso
+use Illuminate\Support\Facades\Route;
 
-
-Route::view('/', 'public.galeria')->name('home');
-
+// ==========================================
+// 1. RUTAS PÚBLICAS (No requieren sesión)
+// ==========================================
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::view('/galeria', 'galeria')->name('galeria');
+Route::view('/contacto', 'contacto')->name('contacto');
 
-Route::middleware('auth')->group(function () {
+// ==========================================
+// 2. RUTAS PROTEGIDAS (Requieren Login)
+// ==========================================
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    // Módulo de Perfil (Generado por Laravel Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
-
-Route::middleware(['auth'])->group(function () {
-
-    // Admin y Recepción: pueden ver y registrar (index, create, store, show)
+    // ------------------------------------------
+    // MÓDULO: CLIENTES (Protegido por Roles)
+    // ------------------------------------------
+    
+    // Admin y Recepción: pueden ver y registrar
     Route::middleware(['role:admin,recepcion'])->group(function () {
         Route::get('/clientes', [ClienteController::class, 'index'])->name('clientes.index');
         Route::get('/clientes/create', [ClienteController::class, 'create'])->name('clientes.create');
@@ -38,6 +49,14 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');
         Route::delete('/clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
     });
+
+    // ------------------------------------------
+    // NUEVOS MÓDULOS: ASISTENCIAS Y PAGOS
+    // ------------------------------------------
+    // Route::resource('asistencias', AsistenciaController::class);
+    // Route::resource('pagos', PagoController::class);
+
 });
 
+// Carga las rutas de autenticación (Login, Registro, etc.)
 require __DIR__.'/auth.php';
