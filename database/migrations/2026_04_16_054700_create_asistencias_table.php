@@ -9,13 +9,12 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void {
+    public function up(): void{
     Schema::create('asistencias', function (Blueprint $table) {
         $table->id();
         // Relación con la tabla clientes
         $table->foreignId('cliente_id')->constrained()->onDelete('cascade');
-        $table->timestamp('fecha_entrada')->useCurrent();
-        $table->timestamps();
+        $table->timestamps(); // Esto guardará automáticamente la fecha y hora de entrada
     });
 }
 

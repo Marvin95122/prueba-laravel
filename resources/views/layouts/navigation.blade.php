@@ -9,7 +9,7 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="menuGym">
+        <div class="collapse navbar-collapse" id="menuGym" style="visibility: visible !important;">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-3">
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('dashboard') ? 'active fw-bold text-white' : '' }}" href="{{ route('dashboard') }}">
@@ -19,6 +19,16 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('clientes.*') ? 'active fw-bold text-white' : '' }}" href="{{ route('clientes.index') }}">
                         <i class="bi bi-people-fill"></i> Clientes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('asistencias.*') ? 'active fw-bold text-white' : '' }}" href="{{ route('asistencias.index') }}">
+                        <i class="bi bi-person-check-fill"></i> Asistencias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('pagos.*') ? 'active fw-bold text-white' : '' }}" href="{{ route('pagos.index') }}">
+                        <i class="bi bi-cash-coin"></i> Pagos
                     </a>
                 </li>
                 <li class="nav-item">

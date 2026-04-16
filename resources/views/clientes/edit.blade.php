@@ -1,61 +1,56 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Editar cliente</h2>
-                <p class="text-sm text-gray-600 dark:text-gray-300">Actualiza datos de membresía y estado.</p>
-            </div>
-
-            <a href="{{ route('clientes.index') }}"
-               class="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100
-                      dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700">
-                Volver
-            </a>
-        </div>
-    </x-slot>
-
-    <div class="py-8">
-        <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
-            <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-
-                <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                    <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Editar: {{ $cliente->nombre }}</h3>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Guarda cambios cuando termines.</p>
-                </div>
-
-                <div class="p-6">
-                    @if ($errors->any())
-                        <div class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800
-                                    dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-200">
-                            <p class="font-semibold">Revisa los siguientes errores:</p>
-                            <ul class="mt-2 list-disc pl-5">
-                                @foreach ($errors->all() as $e)
-                                    <li>{{ $e }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('clientes.update', $cliente) }}" class="space-y-6">
-                        @csrf
-                        @method('PUT')
-
-                        @include('clientes.partials.form', ['cliente' => $cliente])
-
-                        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                            <a href="{{ route('clientes.index') }}"
-                               class="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100
-                                      dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700">
-                                Cancelar
-                            </a>
-
-                            <button type="submit"
-                                    class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow
-                                           hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-                                Actualizar
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                
+                <div class="card shadow-sm border-0" style="border-radius: 10px; border-top: 5px solid #0d6efd;">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center" style="border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-pencil-square text-primary me-2"></i> Editar Cliente</h5>
+                        <a href="{{ route('clientes.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Cancelar</a>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <form action="{{ route('clientes.update', $cliente) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Nombre Completo</label>
+                                <input type="text" name="nombre" class="form-control" required value="{{ old('nombre', $cliente->nombre) }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Teléfono</label>
+                                <input type="text" name="telefono" class="form-control" value="{{ old('telefono', $cliente->telefono) }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Membresía</label>
+                                <select name="membresia" class="form-select" required>
+                                    <option value="basica" {{ $cliente->membresia == 'basica' ? 'selected' : '' }}>Básica</option>
+                                    <option value="plus" {{ $cliente->membresia == 'plus' ? 'selected' : '' }}>Plus</option>
+                                    <option value="premium" {{ $cliente->membresia == 'premium' ? 'selected' : '' }}>Premium VIP</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Vigencia hasta</label>
+                                <input type="date" name="vigencia_hasta" class="form-control" required value="{{ old('vigencia_hasta', $cliente->vigencia_hasta) }}">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Estado</label>
+                                <select name="estado" class="form-select" required>
+                                    <option value="activa" {{ $cliente->estado == 'activa' ? 'selected' : '' }}>Activa (Permitir acceso)</option>
+                                    <option value="inactiva" {{ $cliente->estado == 'inactiva' ? 'selected' : '' }}>Inactiva (Bloquear acceso)</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
+                                <i class="bi bi-arrow-repeat me-1"></i> Actualizar Datos
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
 
             </div>

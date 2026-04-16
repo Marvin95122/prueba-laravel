@@ -1,128 +1,146 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <style>
+        .card-custom { background-color: white; border: 1px solid #dee2e6; border-radius: 10px; }
+        .bg-header-custom { background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; border-top-left-radius: 10px; border-top-right-radius: 10px; }
+    </style>
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Clientes</h2>
-                <p class="text-sm text-gray-600 dark:text-gray-300">
-                    Administración de miembros y estado de su membresía.
-                </p>
+                <h2 class="h4 mb-0 text-dark fw-bold"><i class="bi bi-people-fill text-success me-2"></i> Directorio de Clientes</h2>
+                <small class="text-muted">Administra los miembros del gimnasio, sus membresías y estado de acceso.</small>
+            </div>
+        </div>
+
+        @if(session('success') || session('ok'))
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') ?? session('ok') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-danger shadow-sm">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="row g-4">
+            
+            <div class="col-lg-4">
+                <div class="card card-custom shadow-sm h-100 border-top border-success border-4">
+                    <div class="card-header bg-header-custom py-3">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-person-plus-fill text-success me-2"></i> Registrar Cliente</h6>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ route('clientes.store') }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Nombre Completo</label>
+                                <input type="text" name="nombre" class="form-control" required placeholder="Ej. Juan Pérez" value="{{ old('nombre') }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Teléfono</label>
+                                <input type="text" name="telefono" class="form-control" placeholder="Ej. 951 123 4567" value="{{ old('telefono') }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Membresía</label>
+                                <select name="membresia" class="form-select" required>
+                                    <option value="basica">Básica</option>
+                                    <option value="plus">Plus</option>
+                                    <option value="premium">Premium VIP</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Vigencia hasta</label>
+                                <input type="date" name="vigencia_hasta" class="form-control" required value="{{ old('vigencia_hasta') }}">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Estado</label>
+                                <select name="estado" class="form-select" required>
+                                    <option value="activa">Activa (Permitir acceso)</option>
+                                    <option value="inactiva">Inactiva (Bloquear acceso)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 fw-bold shadow-sm">
+                                <i class="bi bi-save-fill me-1"></i> Guardar Cliente
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
 
-            <a href="{{ route('clientes.create') }}"
-               class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-                + Nuevo cliente
-            </a>
-        </div>
-    </x-slot>
-
-    <div class="py-8">
-        <div class="mx-auto max-w-6xl sm:px-6 lg:px-8">
-
-            @if(session('ok'))
-                <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-800
-                            dark:border-green-900/40 dark:bg-green-900/30 dark:text-green-200">
-                    {{ session('ok') }}
-                </div>
-            @endif
-
-            <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Listado</h3>
+            <div class="col-lg-8">
+                <div class="card card-custom shadow-sm h-100">
+                    <div class="card-header bg-header-custom py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-card-list text-success me-2"></i> Listado General</h6>
+                        <span class="badge bg-success">{{ $clientes->total() ?? 0 }} registrados</span>
                     </div>
-                </div>
-
-                <div class="p-0 sm:p-6">
-                    <div class="overflow-hidden overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-                        
-                        <table class="min-w-[1000px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
-                            <thead class="bg-gray-50 text-gray-700 dark:bg-gray-900/60 dark:text-gray-200">
-                                <tr>
-                                    <th class="whitespace-nowrap px-6 py-4 text-left font-semibold">Nombre</th>
-                                    <th class="whitespace-nowrap px-6 py-4 text-left font-semibold">Teléfono</th>
-                                    <th class="whitespace-nowrap px-6 py-4 text-left font-semibold">Membresía</th>
-                                    <th class="whitespace-nowrap px-6 py-4 text-left font-semibold">Vigencia</th>
-                                    <th class="whitespace-nowrap px-6 py-4 text-center font-semibold">Estado</th>
-                                    <th class="whitespace-nowrap px-6 py-4 text-center font-semibold">Acciones</th>
-                                </tr>
-                            </thead>
-
-                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                @forelse($clientes as $c)
-                                    <tr class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700/40 transition-colors">
-                                        <td class="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $c->nombre }}
-                                        </td>
-
-                                        <td class="whitespace-nowrap px-6 py-4 text-gray-700 dark:text-gray-200">
-                                            {{ $c->telefono ?? '-' }}
-                                        </td>
-
-                                        <td class="whitespace-nowrap px-6 py-4 text-gray-700 dark:text-gray-200 capitalize">
-                                            <span class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ring-gray-200 dark:ring-gray-700 bg-gray-50 dark:bg-gray-900">
-                                                {{ $c->membresia }}
-                                            </span>
-                                        </td>
-
-                                        <td class="whitespace-nowrap px-6 py-4 text-gray-700 dark:text-gray-200">
-                                            {{ \Carbon\Carbon::parse($c->vigencia_hasta)->format('d/m/Y') }}
-                                        </td>
-
-                                        <td class="whitespace-nowrap px-6 py-4 text-center">
-                                            @if($c->estado === 'activa')
-                                                <span class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/20 dark:text-green-400 dark:ring-green-500/20">
-                                                    Activa
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-600/10 dark:bg-red-900/20 dark:text-red-400 dark:ring-red-500/20">
-                                                    Inactiva
-                                                </span>
-                                            @endif
-                                        </td>
-
-                                        <td class="whitespace-nowrap px-6 py-4">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <a href="{{ route('clientes.show', $c) }}"
-                                                   class="rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
-                                                    Ver
-                                                </a>
-
-                                                @if(auth()->user()->role === 'admin')
-                                                    <a href="{{ route('clientes.edit', $c) }}"
-                                                       class="rounded-md bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-600 shadow-sm ring-1 ring-inset ring-indigo-500/30 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:ring-indigo-500/30 dark:hover:bg-indigo-900/50">
-                                                        Editar
-                                                    </a>
-
-                                                    <form action="{{ route('clientes.destroy', $c) }}" method="POST" class="inline" onsubmit="return confirm('¿Eliminar miembro definitivamente?')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit"
-                                                                class="rounded-md bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-500/30 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-500/30 dark:hover:bg-red-900/50">
-                                                            Eliminar
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
                                     <tr>
-                                        <td colspan="6" class="px-6 py-12 text-center">
-                                            <div class="flex flex-col items-center justify-center space-y-3">
-                                                <svg class="h-12 w-12 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                                </svg>
-                                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">No hay miembros registrados todavía.</p>
-                                            </div>
-                                        </td>
+                                        <th class="ps-4">Nombre</th>
+                                        <th>Contacto</th>
+                                        <th>Membresía</th>
+                                        <th>Estado</th>
+                                        <th class="text-end pe-4">Acciones</th>
                                     </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @forelse($clientes as $c)
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-dark">{{ $c->nombre }}</td>
+                                            <td class="text-muted small"><i class="bi bi-telephone-fill me-1"></i> {{ $c->telefono ?? 'N/A' }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary mb-1 d-block w-75">{{ ucfirst($c->membresia) }}</span>
+                                                <small class="text-muted" style="font-size: 0.75rem;">Vence: {{ \Carbon\Carbon::parse($c->vigencia_hasta)->format('d/m/Y') }}</small>
+                                            </td>
+                                            <td>
+                                                @if($c->estado === 'activa')
+                                                    <span class="badge bg-success bg-opacity-25 text-success border border-success">Activa</span>
+                                                @else
+                                                    <span class="badge bg-danger bg-opacity-25 text-danger border border-danger">Inactiva</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <div class="btn-group" role="group">
+                                                    @if(auth()->user()->role === 'admin')
+                                                        <a href="{{ route('clientes.edit', $c) }}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                                            <i class="bi bi-pencil-fill"></i>
+                                                        </a>
+                                                        <form action="{{ route('clientes.destroy', $c) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar a {{ $c->nombre }}?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                                <i class="bi bi-trash-fill"></i>
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <button class="btn btn-sm btn-secondary" disabled title="Solo Admin"><i class="bi bi-lock-fill"></i></button>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center py-5 text-muted">
+                                                <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                                No hay clientes registrados en la base de datos.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    
-                    <div class="mt-4 px-4 sm:px-0">
-                        {{ $clientes->links() }}
+                    <div class="card-footer bg-white border-top-0 pt-3">
+                        {{ $clientes->links('pagination::bootstrap-5') }}
                     </div>
                 </div>
             </div>

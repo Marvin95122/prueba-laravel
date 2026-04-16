@@ -50,11 +50,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
     });
 
-    // ------------------------------------------
-    // NUEVOS MÓDULOS: ASISTENCIAS Y PAGOS
-    // ------------------------------------------
-    // Route::resource('asistencias', AsistenciaController::class);
-    // Route::resource('pagos', PagoController::class);
+    // MÓDULOS: ASISTENCIAS Y PAGOS
+    Route::resource('asistencias', App\Http\Controllers\AsistenciaController::class)->only(['index', 'store']);
+    Route::resource('pagos', App\Http\Controllers\PagoController::class)->only(['index', 'store']);
 
 });
 
