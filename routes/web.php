@@ -4,6 +4,9 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ClienteController;
 
+
+Route::view('/', 'public.galeria')->name('home');
+
 Route::get('/', function () {
     return view('welcome');
 });
