@@ -1,47 +1,108 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymControl - Acceso al Sistema</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        /* Forzamos los colores oscuros premium directamente en CSS */
+        body { 
+            background-color: #111827 !important; /* Gris muy oscuro casi negro */
+        }
+        .login-card { 
+            background-color: #1f2937 !important; /* Gris oscuro para la tarjeta */
+            border-radius: 10px; 
+            border: none;
+            border-top: 5px solid #198754 !important; /* Borde verde GymControl */
+        }
+        .form-control, .input-group-text {
+            background-color: #374151 !important; /* Fondo de los inputs oscuro */
+            border-color: #4b5563 !important;
+            color: #f3f4f6 !important; /* Letra blanca */
+        }
+        .form-control::placeholder {
+            color: #9ca3af !important; /* Placeholder gris claro */
+        }
+        .form-control:focus {
+            background-color: #4b5563 !important;
+            border-color: #198754 !important;
+            box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25) !important;
+            color: white !important;
+        }
+        .text-muted-custom {
+            color: #9ca3af !important;
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center min-vh-100">
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            
+            <div class="text-center mb-4">
+                <h1 class="fw-bold text-white"><i class="bi bi-heart-pulse-fill text-success"></i> GymControl</h1>
+                <p class="text-muted-custom">Gestión integral de gimnasios</p>
+            </div>
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <div class="card shadow-lg login-card">
+                <div class="card-body p-4">
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger py-2 text-sm">
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
+
+                        <div class="mb-3">
+                            <label class="form-label text-white fw-semibold">Correo electrónico</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" name="email" value="{{ old('email') }}" class="form-control" placeholder="ejemplo@gym.com" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-white fw-semibold">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" name="remember" id="remember" style="background-color: #374151; border-color: #4b5563;">
+                            <label class="form-check-label text-muted-custom" for="remember">Recordar mi sesión</label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold">
+                                Acceder al panel
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+            
+            <div class="text-center mt-4 text-muted-custom small">
+                &copy; {{ date('Y') }} GymControl
+            </div>
+
         </div>
+    </div>
+</div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+</body>
+</html>

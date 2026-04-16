@@ -1,120 +1,124 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="es">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GymControl - Bienvenidos</title>
     
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        body { 
+            background-color: #0f172a !important; 
+            color: #f8fafc !important;
+        }
+        .navbar {
+            background-color: #1e293b !important;
+            border-bottom: 3px solid #198754 !important; 
+        }
+        .hero-section { padding: 60px 0; text-align: center; }
+        .card-gym {
+            background-color: #1e293b !important;
+            border: 1px solid #334155 !important;
+            border-radius: 12px; overflow: hidden;
+            transition: transform 0.3s ease, shadow 0.3s ease;
+        }
+        .card-gym:hover { transform: translateY(-10px); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .card-gym img { height: 200px; object-fit: cover; filter: brightness(0.8); }
+        .card-gym .card-title { color: #ffffff; font-weight: bold; }
+        .card-gym .card-text { color: #94a3b8; }
+        .badge-gym { background-color: rgba(25, 135, 84, 0.2); color: #22c55e; border: 1px solid #198754; }
+        footer { background-color: #020617; border-top: 1px solid #1e293b; padding: 20px 0; color: #64748b; }
+    </style>
 </head>
-<body class="antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
 
-    <nav class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/80 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                
-                <div class="flex items-center gap-2">
-                    <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                    <span class="text-xl font-bold tracking-wider">GymControl</span>
-                </div>
+<body class="d-flex flex-column min-vh-100">
 
-                <div>
-                    @if (Route::has('login'))
-                        <div class="flex gap-4">
-                            @auth
-                                <a href="{{ url('/dashboard') }}" class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700 transition-colors">
-                                    Ir al Panel
-                                </a>
-                            @else
-                                <a href="{{ route('login') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
-                                    Iniciar Sesión
-                                </a>
-                            @endauth
-                        </div>
-                    @endif
-                </div>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-heart-pulse-fill text-success"></i> GymControl
+            </a>
+            
+            <div class="ms-auto d-flex gap-2">
+                @if (Route::has('login'))
+                    @auth
+                        <a href="{{ url('/dashboard') }}" class="btn btn-success fw-bold">Ir al Panel</a>
+                        
+                        <form method="POST" action="{{ route('logout') }}" class="m-0">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger fw-bold">Salir</button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-outline-light fw-bold">Iniciar Sesión</a>
+                    @endauth
+                @endif
             </div>
+
         </div>
     </nav>
 
-    <main class="flex-grow">
-        
-        <div class="text-center py-16 px-4 sm:px-6 lg:px-8">
-            <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl md:text-6xl">
-                <span class="block">Tus instalaciones de</span>
-                <span class="block text-indigo-600 dark:text-indigo-400 mt-2">Primer Nivel</span>
-            </h1>
-            <p class="mt-4 max-w-md mx-auto text-base text-gray-500 dark:text-gray-400 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                Conoce nuestras áreas de entrenamiento equipadas con la mejor tecnología para que alcances tus objetivos.
-            </p>
-        </div>
+    <header class="hero-section container">
+        <h1 class="display-4 fw-extrabold mt-4">Nuestras <span class="text-success">Instalaciones</span></h1>
+        <p class="lead text-muted mx-auto" style="max-width: 700px;">
+            Equipamiento de última generación y áreas diseñadas para que alcances tu máximo potencial físico.
+        </p>
+    </header>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
-                    <img src="{{ asset('imagenes/cardio.jpg') }}" alt="Área de Cardio" class="w-full h-48 object-cover bg-gray-200 dark:bg-gray-700">
-                    <div class="p-5 flex flex-col h-full">
-                        <h3 class="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">Área de Cardio</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 flex-grow">Caminadoras y elípticas con pantallas integradas.</p>
-                        <div>
-                            <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/20 dark:text-green-400 dark:ring-green-500/20">Plan Básico</span>
-                        </div>
+    <main class="container mb-5 flex-grow-1">
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <article class="card card-gym h-100 shadow-sm">
+                    <img src="{{ asset('imagenes/cardio.jpg') }}" class="card-img-top" alt="Cardio">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Área de Cardio</h5>
+                        <p class="card-text small flex-grow-1">Caminadoras y elípticas con tecnología de punta.</p>
+                        <span class="badge badge-gym mt-2 p-2">Plan Básico</span>
                     </div>
-                </div>
+                </article>
+            </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
-                    <img src="{{ asset('imagenes/maquinas.jpg') }}" alt="Peso Integrado" class="w-full h-48 object-cover bg-gray-200 dark:bg-gray-700">
-                    <div class="p-5 flex flex-col h-full">
-                        <h3 class="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">Peso Integrado</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 flex-grow">Máquinas para aislar cada grupo muscular de forma segura.</p>
-                        <div>
-                            <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20 dark:bg-green-900/20 dark:text-green-400 dark:ring-green-500/20">Plan Básico</span>
-                        </div>
+            <div class="col-md-6 col-lg-3">
+                <article class="card card-gym h-100 shadow-sm">
+                    <img src="{{ asset('imagenes/maquinas.jpg') }}" class="card-img-top" alt="Máquinas">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Peso Integrado</h5>
+                        <p class="card-text small flex-grow-1">Máquinas seguras para todos los niveles.</p>
+                        <span class="badge badge-gym mt-2 p-2">Plan Básico</span>
                     </div>
-                </div>
+                </article>
+            </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
-                    <img src="{{ asset('imagenes/crossfit.jpg') }}" alt="Crossfit Zone" class="w-full h-48 object-cover bg-gray-200 dark:bg-gray-700">
-                    <div class="p-5 flex flex-col h-full">
-                        <h3 class="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">Crossfit Zone</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 flex-grow">Cajas de salto, cuerdas de batalla y pesas rusas.</p>
-                        <div>
-                            <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 dark:bg-blue-900/20 dark:text-blue-400 dark:ring-blue-500/20">Plan Plus</span>
-                        </div>
+            <div class="col-md-6 col-lg-3">
+                <article class="card card-gym h-100 shadow-sm">
+                    <img src="{{ asset('imagenes/crossfit.jpg') }}" class="card-img-top" alt="Crossfit">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Zona Crossfit</h5>
+                        <p class="card-text small flex-grow-1">Entrenamiento funcional de alta intensidad.</p>
+                        <span class="badge badge-gym mt-2 p-2" style="color: #3b82f6; border-color: #3b82f6; background: rgba(59,130,246,0.1);">Plan Plus</span>
                     </div>
-                </div>
+                </article>
+            </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 hover:-translate-y-2">
-                    <img src="{{ asset('imagenes/vestidores.jpg') }}" alt="Regaderas y Lockers" class="w-full h-48 object-cover bg-gray-200 dark:bg-gray-700">
-                    <div class="p-5 flex flex-col h-full">
-                        <h3 class="text-lg font-bold mb-2 text-gray-900 dark:text-gray-100">Regaderas y Lockers</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 flex-grow">Vestidores limpios, seguros y con agua caliente 24/7.</p>
-                        <div>
-                            <span class="inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20 dark:bg-purple-900/20 dark:text-purple-400 dark:ring-purple-500/20">Todos los planes</span>
-                        </div>
+            <div class="col-md-6 col-lg-3">
+                <article class="card card-gym h-100 shadow-sm">
+                    <img src="{{ asset('imagenes/vestidores.jpg') }}" class="card-img-top" alt="Vestidores">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">Vestidores</h5>
+                        <p class="card-text small flex-grow-1">Áreas limpias, lockers y agua caliente.</p>
+                        <span class="badge badge-gym mt-2 p-2" style="color: #a855f7; border-color: #a855f7; background: rgba(168,85,247,0.1);">Todos los planes</span>
                     </div>
-                </div>
-
+                </article>
             </div>
         </div>
     </main>
 
-    <footer class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                &copy; {{ date('Y') }} GymControl. Todos los derechos reservados.
-            </p>
-            <div class="flex gap-4 text-sm text-gray-500 dark:text-gray-400">
-                <span>soporte@gymcontrol.com</span>
-                <span class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">Ayuda</span>
-            </div>
+    <footer class="text-center mt-auto">
+        <div class="container">
+            <p class="mb-0 small">&copy; {{ date('Y') }} GymControl. Todos los derechos reservados.</p>
         </div>
     </footer>
+
 </body>
 </html>
