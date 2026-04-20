@@ -76,7 +76,7 @@
           <div class="card-body d-flex flex-column">
             <h5 class="card-title fw-bold text-dark">Zona Crossfit</h5>
             <p class="card-text small text-muted flex-grow-1">Entrenamiento funcional de alta intensidad.</p>
-            <div><span class="badge-custom bg-plan-plus">Plan Plus</span></div>
+            <div><span class="badge-custom bg-plan-plus">Plan plus</span></div>
           </div>
         </article>
       </div>
