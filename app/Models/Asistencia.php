@@ -11,7 +11,6 @@ class Asistencia extends Model
 
     protected $fillable = ['cliente_id'];
 
-    // Relación: Una asistencia pertenece a un cliente
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);

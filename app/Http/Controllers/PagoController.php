@@ -11,16 +11,13 @@ class PagoController extends Controller
 {
     public function index()
     {
-        // Traemos a los clientes para el buscador
         $clientes = Cliente::orderBy('nombre')->get();
         
-        // Traemos los pagos solo del día de hoy
         $pagosHoy = Pago::with('cliente')
                         ->whereDate('created_at', Carbon::today())
                         ->orderBy('created_at', 'desc')
                         ->get();
         
-        // Calculamos el total de dinero en caja
         $totalCaja = $pagosHoy->sum('monto');
 
         return view('pagos.index', compact('clientes', 'pagosHoy', 'totalCaja'));

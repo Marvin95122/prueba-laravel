@@ -11,10 +11,10 @@ class AsistenciaController extends Controller
 {
     public function index()
     {
-        // Traemos clientes activos para el registro
+
         $clientes = Cliente::where('estado', 'activa')->orderBy('nombre')->get();
         
-        // Traemos las asistencias de HOY, cargando los datos del cliente relacionado
+
         $asistencias = Asistencia::with('cliente')
                         ->whereDate('created_at', Carbon::today())
                         ->orderBy('created_at', 'desc')

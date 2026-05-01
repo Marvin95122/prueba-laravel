@@ -11,7 +11,6 @@ class Pago extends Model
 
     protected $fillable = ['cliente_id', 'monto', 'concepto', 'metodo_pago'];
 
-    // Relación: Un pago pertenece a un cliente
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
