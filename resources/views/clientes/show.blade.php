@@ -7,17 +7,25 @@
             </div>
 
             <div class="flex gap-2">
-                <a href="{{ route('clientes.index') }}"
-                   class="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100
-                          dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700">
-                    Volver
+                <a href="{{ route('clientes.show', $cliente) }}" class="btn btn-sm btn-outline-secondary">
+                    Ver
                 </a>
 
-                @if(auth()->user()->role === 'admin')
-                    <a href="{{ route('clientes.edit', $cliente) }}"
-                       class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700">
+                @if(in_array(auth()->user()->role, ['admin', 'gerente']))
+                    <a href="{{ route('clientes.edit', $cliente) }}" class="btn btn-sm btn-outline-primary">
                         Editar
                     </a>
+                @endif
+
+                @if(auth()->user()->role === 'admin')
+                    <form action="{{ route('clientes.destroy', $cliente) }}" method="POST" class="d-inline"
+                        onsubmit="return confirm('¿Seguro que deseas eliminar este cliente?')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="btn btn-sm btn-outline-danger" type="submit">
+                            Eliminar
+                        </button>
+                    </form>
                 @endif
             </div>
         </div>
@@ -41,7 +49,7 @@
 
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">
                             <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">Membresía</p>
-                            <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100 capitalize">{{ $cliente->membresia }}</p>
+                            <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100 capitalize">{{ $cliente->nombre_membresia }}</p>
                         </div>
 
                         <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40">

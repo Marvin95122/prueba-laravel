@@ -26,10 +26,15 @@
                             
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Membresía</label>
-                                <select name="membresia" class="form-select" required>
-                                    <option value="basica" {{ $cliente->membresia == 'basica' ? 'selected' : '' }}>Básica</option>
-                                    <option value="plus" {{ $cliente->membresia == 'plus' ? 'selected' : '' }}>Plus</option>
-                                    <option value="premium" {{ $cliente->membresia == 'premium' ? 'selected' : '' }}>Premium VIP</option>
+                                <select name="membresia_id" class="form-select" required>
+                                    <option value="">Selecciona una membresía</option>
+
+                                    @foreach($membresias as $membresia)
+                                        <option value="{{ $membresia->id }}" 
+                                            @selected(old('membresia_id', $cliente->membresia_id) == $membresia->id)>
+                                            {{ $membresia->nombre }} - ${{ number_format($membresia->precio, 2) }} / {{ $membresia->duracion_dias }} días
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                             

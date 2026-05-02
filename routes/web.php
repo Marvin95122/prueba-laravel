@@ -36,22 +36,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // MÓDULO: CLIENTES (Protegido por Roles)
     // ------------------------------------------
     
-    // Admin, Gerente y Recepción: pueden ver, crear y consultar clientes
-    Route::middleware(['role:admin,gerente,recepcion'])->group(function () {
+    // Admin, Gerente y Recepción: pueden ver y registrar clientes.
+    Route::middleware(['auth', 'verified', 'role:admin,gerente,recepcion'])->group(function () {
         Route::get('/clientes', [ClienteController::class, 'index'])->name('clientes.index');
         Route::get('/clientes/create', [ClienteController::class, 'create'])->name('clientes.create');
         Route::post('/clientes', [ClienteController::class, 'store'])->name('clientes.store');
         Route::get('/clientes/{cliente}', [ClienteController::class, 'show'])->name('clientes.show');
     });
 
-    // Admin y Gerente: pueden editar clientes
-    Route::middleware(['role:admin,gerente'])->group(function () {
+    // Admin y Gerente: pueden editar clientes.
+    Route::middleware(['auth', 'verified', 'role:admin,gerente'])->group(function () {
         Route::get('/clientes/{cliente}/edit', [ClienteController::class, 'edit'])->name('clientes.edit');
         Route::put('/clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');
     });
 
-    // Solo Admin: puede eliminar clientes
-    Route::middleware(['role:admin'])->group(function () {
+    // Solo Admin: puede eliminar clientes.
+    Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
         Route::delete('/clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
     });
 
@@ -63,9 +63,13 @@ Route::middleware(['role:admin,gerente,recepcion'])->group(function () {
 });
 
 
+Route::middleware(['auth', 'verified', 'role:admin,gerente'])->group(function () {
+    Route::resource('membresias', MembresiaController::class)->except(['destroy']);
+});
 
-Route::middleware(['role:admin,gerente'])->group(function () {
-    Route::resource('membresias', MembresiaController::class);
+Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
+    Route::delete('/membresias/{membresia}', [MembresiaController::class, 'destroy'])
+        ->name('membresias.destroy');
 });
 // Carga las rutas de autenticación (Login, Registro, etc.)
 require __DIR__.'/auth.php';

@@ -21,6 +21,14 @@
                         <i class="bi bi-people-fill"></i> Clientes
                     </a>
                 </li>
+                @if(in_array(Auth::user()->role, ['admin', 'gerente']))
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('membresias.*') ? 'active fw-bold text-white' : '' }}"
+                        href="{{ route('membresias.index') }}">
+                            <i class="bi bi-card-checklist"></i> Membresías
+                        </a>
+                    </li>
+                @endif
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('asistencias.*') ? 'active fw-bold text-white' : '' }}" href="{{ route('asistencias.index') }}">
                         <i class="bi bi-person-check-fill"></i> Asistencias

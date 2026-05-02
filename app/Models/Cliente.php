@@ -15,6 +15,10 @@ class Cliente extends Model
         'estado',
     ];
 
+    protected $casts = [
+        'vigencia_hasta' => 'date',
+    ];
+
     public function membresiaPlan()
     {
         return $this->belongsTo(Membresia::class, 'membresia_id');
@@ -32,6 +36,15 @@ class Cliente extends Model
 
     public function getNombreMembresiaAttribute()
     {
-        return $this->membresiaPlan?->nombre ?? ucfirst($this->membresia);
+        return $this->membresiaPlan?->nombre ?? ucfirst($this->membresia ?? 'Sin membresía');
+    }
+
+    public function getMembresiaVencidaAttribute()
+    {
+        if (!$this->vigencia_hasta) {
+            return true;
+        }
+
+        return $this->vigencia_hasta->lt(today());
     }
 }
