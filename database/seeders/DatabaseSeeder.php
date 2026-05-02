@@ -15,11 +15,37 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        \App\Models\Membresia::updateOrCreate(
+            ['nombre' => 'Básica'],
+            [
+                'descripcion' => 'Acceso a pesas y área de cardio.',
+                'precio' => 399,
+                'duracion_dias' => 30,
+                'beneficios' => 'Pesas, cardio y acceso en horario general.',
+                'estado' => 'activa',
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-    }
+        \App\Models\Membresia::updateOrCreate(
+            ['nombre' => 'Plus'],
+            [
+                'descripcion' => 'Acceso a pesas, cardio y clases grupales.',
+                'precio' => 599,
+                'duracion_dias' => 30,
+                'beneficios' => 'Pesas, cardio, clases grupales y rutinas semanales.',
+                'estado' => 'activa',
+            ]
+        );
+
+        \App\Models\Membresia::updateOrCreate(
+            ['nombre' => 'Premium'],
+            [
+                'descripcion' => 'Acceso completo con asesoría personalizada.',
+                'precio' => 899,
+                'duracion_dias' => 30,
+                'beneficios' => 'Todo incluido, asesoría semanal y seguimiento personalizado.',
+                'estado' => 'activa',
+            ]
+        );
+        }
 }

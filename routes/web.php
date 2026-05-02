@@ -2,8 +2,9 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClienteController;
-// use App\Http\Controllers\AsistenciaController; // Se usará en el próximo paso
-// use App\Http\Controllers\PagoController; // Se usará en el próximo paso
+use App\Http\Controllers\AsistenciaController; // Se usará en el próximo paso
+use App\Http\Controllers\PagoController; // Se usará en el próximo paso
+use App\Http\Controllers\MembresiaController;
 use Illuminate\Support\Facades\Route;
 
 // ==========================================
@@ -35,26 +36,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // MÓDULO: CLIENTES (Protegido por Roles)
     // ------------------------------------------
     
-    // Admin y Recepción: pueden ver y registrar
-    Route::middleware(['role:admin,recepcion'])->group(function () {
+    // Admin, Gerente y Recepción: pueden ver, crear y consultar clientes
+    Route::middleware(['role:admin,gerente,recepcion'])->group(function () {
         Route::get('/clientes', [ClienteController::class, 'index'])->name('clientes.index');
         Route::get('/clientes/create', [ClienteController::class, 'create'])->name('clientes.create');
         Route::post('/clientes', [ClienteController::class, 'store'])->name('clientes.store');
         Route::get('/clientes/{cliente}', [ClienteController::class, 'show'])->name('clientes.show');
     });
 
-    // SOLO Admin: puede editar, actualizar y eliminar
-    Route::middleware(['role:admin'])->group(function () {
+    // Admin y Gerente: pueden editar clientes
+    Route::middleware(['role:admin,gerente'])->group(function () {
         Route::get('/clientes/{cliente}/edit', [ClienteController::class, 'edit'])->name('clientes.edit');
         Route::put('/clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');
+    });
+
+    // Solo Admin: puede eliminar clientes
+    Route::middleware(['role:admin'])->group(function () {
         Route::delete('/clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
     });
 
-    // MÓDULOS: ASISTENCIAS Y PAGOS
-    Route::resource('asistencias', App\Http\Controllers\AsistenciaController::class)->only(['index', 'store']);
-    Route::resource('pagos', App\Http\Controllers\PagoController::class)->only(['index', 'store']);
-
 });
 
+Route::middleware(['role:admin,gerente,recepcion'])->group(function () {
+    Route::resource('asistencias', App\Http\Controllers\AsistenciaController::class)->only(['index', 'store']);
+    Route::resource('pagos', App\Http\Controllers\PagoController::class)->only(['index', 'store']);
+});
+
+
+
+Route::middleware(['role:admin,gerente'])->group(function () {
+    Route::resource('membresias', MembresiaController::class);
+});
 // Carga las rutas de autenticación (Login, Registro, etc.)
 require __DIR__.'/auth.php';
