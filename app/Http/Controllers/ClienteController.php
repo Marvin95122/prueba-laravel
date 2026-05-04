@@ -12,8 +12,10 @@ class ClienteController extends Controller
     {
         $clientes = Cliente::with('membresiaPlan')
             ->when($request->buscar, function ($query, $buscar) {
-                $query->where('nombre', 'like', "%{$buscar}%")
-                    ->orWhere('telefono', 'like', "%{$buscar}%");
+                $query->where(function ($q) use ($buscar) {
+                    $q->where('nombre', 'like', "%{$buscar}%")
+                      ->orWhere('telefono', 'like', "%{$buscar}%");
+                });
             })
             ->when($request->estado, function ($query, $estado) {
                 $query->where('estado', $estado);
@@ -22,7 +24,11 @@ class ClienteController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('clientes.index', compact('clientes'));
+        $membresias = Membresia::where('estado', 'activa')
+            ->orderBy('precio')
+            ->get();
+
+        return view('clientes.index', compact('clientes', 'membresias'));
     }
 
     public function create()
@@ -46,7 +52,7 @@ class ClienteController extends Controller
 
         $membresia = Membresia::findOrFail($data['membresia_id']);
 
-        // Se conserva este campo para compatibilidad con lo que ya existía.
+        // Se conserva para compatibilidad con registros anteriores.
         $data['membresia'] = strtolower($membresia->nombre);
 
         Cliente::create($data);
@@ -84,7 +90,7 @@ class ClienteController extends Controller
 
         $membresia = Membresia::findOrFail($data['membresia_id']);
 
-        // Se conserva para compatibilidad con registros anteriores.
+        // Se conserva para compatibilidad con datos antiguos.
         $data['membresia'] = strtolower($membresia->nombre);
 
         $cliente->update($data);

@@ -19,13 +19,14 @@
 
     <div>
         <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200">Membresía</label>
-        <select name="membresia" required
-                class="mt-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900
-                       focus:border-indigo-500 focus:ring-indigo-500
-                       dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">
-            <option value="basica" @selected(old('membresia', $cliente->membresia ?? '') === 'basica')>Básica</option>
-            <option value="plus" @selected(old('membresia', $cliente->membresia ?? '') === 'plus')>Plus</option>
-            <option value="premium" @selected(old('membresia', $cliente->membresia ?? '') === 'premium')>Premium</option>
+        <select name="membresia_id" class="form-select" required>
+            <option value="">Selecciona una membresía</option>
+
+            @foreach($membresias as $membresia)
+                <option value="{{ $membresia->id }}" @selected(old('membresia_id', $cliente->membresia_id) == $membresia->id)>
+                    {{ $membresia->nombre }} - ${{ number_format($membresia->precio, 2) }} / {{ $membresia->duracion_dias }} días
+                </option>
+            @endforeach
         </select>
     </div>
 

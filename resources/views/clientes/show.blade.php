@@ -17,7 +17,7 @@
                     </a>
                 @endif
 
-                @if(auth()->user()->role === 'admin')
+                @if(in_array(auth()->user()->role, ['admin', 'gerente']))
                     <form action="{{ route('clientes.destroy', $cliente) }}" method="POST" class="d-inline"
                         onsubmit="return confirm('¿Seguro que deseas eliminar este cliente?')">
                         @csrf

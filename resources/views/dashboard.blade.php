@@ -107,8 +107,15 @@
                                     @forelse(\App\Models\Cliente::orderBy('id','desc')->take(5)->get() as $c)
                                         <tr>
                                             <td class="ps-4 fw-bold text-dark-custom">{{ $c->nombre }}</td>
-                                            <td><span class="badge bg-secondary">{{ ucfirst($c->membresia) }}</span></td>
-                                            <td class="text-muted small">{{ \Carbon\Carbon::parse($c->vigencia_hasta)->format('d/m/Y') }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary mb-1 d-block w-75">
+                                                    {{ $c->nombre_membresia }}
+                                                </span>
+
+                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                    Vence: {{ \Carbon\Carbon::parse($c->vigencia_hasta)->format('d/m/Y') }}
+                                                </small>
+                                            </td>
                                             <td>
                                                 @if($c->estado === 'activa')
                                                     <span class="badge bg-success bg-opacity-25 text-success border border-success">Activa</span>

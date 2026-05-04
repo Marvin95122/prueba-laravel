@@ -49,10 +49,14 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Membresía</label>
-                                <select name="membresia" class="form-select" required>
-                                    <option value="basica">Básica</option>
-                                    <option value="plus">Plus</option>
-                                    <option value="premium">Premium VIP</option>
+                                <select name="membresia_id" class="form-select" required>
+                                    <option value="">Selecciona una membresía</option>
+
+                                    @foreach($membresias as $membresia)
+                                        <option value="{{ $membresia->id }}" @selected(old('membresia_id') == $membresia->id)>
+                                            {{ $membresia->nombre }} - ${{ number_format($membresia->precio, 2) }} / {{ $membresia->duracion_dias }} días
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -98,8 +102,13 @@
                                             <td class="ps-4 fw-bold text-dark">{{ $c->nombre }}</td>
                                             <td class="text-muted small"><i class="bi bi-telephone-fill me-1"></i> {{ $c->telefono ?? 'N/A' }}</td>
                                             <td>
-                                                <span class="badge bg-secondary mb-1 d-block w-75">{{ ucfirst($c->membresia) }}</span>
-                                                <small class="text-muted" style="font-size: 0.75rem;">Vence: {{ \Carbon\Carbon::parse($c->vigencia_hasta)->format('d/m/Y') }}</small>
+                                                <span class="badge bg-secondary mb-1 d-block w-75">
+                                                    {{ $c->nombre_membresia }}
+                                                </span>
+
+                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                    Vence: {{ \Carbon\Carbon::parse($c->vigencia_hasta)->format('d/m/Y') }}
+                                                </small>
                                             </td>
                                             <td>
                                                 @if($c->estado === 'activa')
@@ -109,23 +118,35 @@
                                                 @endif
                                             </td>
                                             <td class="text-end pe-4">
-                                                <div class="btn-group" role="group">
-                                                    @if(auth()->user()->role === 'admin')
-                                                        <a href="{{ route('clientes.edit', $c) }}" class="btn btn-sm btn-outline-primary" title="Editar">
-                                                            <i class="bi bi-pencil-fill"></i>
-                                                        </a>
-                                                        <form action="{{ route('clientes.destroy', $c) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar a {{ $c->nombre }}?');">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                                                <i class="bi bi-trash-fill"></i>
-                                                            </button>
-                                                        </form>
-                                                    @else
-                                                        <button class="btn btn-sm btn-secondary" disabled title="Solo Admin"><i class="bi bi-lock-fill"></i></button>
-                                                    @endif
-                                                </div>
-                                            </td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ route('clientes.show', $c) }}" class="btn btn-sm btn-outline-secondary" title="Ver">
+                                                    <i class="bi bi-eye-fill"></i>
+                                                </a>
+
+                                                @if(in_array(auth()->user()->role, ['admin', 'gerente']))
+                                                    <a href="{{ route('clientes.edit', $c) }}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                                        <i class="bi bi-pencil-fill"></i>
+                                                    </a>
+                                                @endif
+
+                                                @if(auth()->user()->role === 'admin')
+                                                    <form action="{{ route('clientes.destroy', $c) }}" method="POST" class="d-inline"
+                                                        onsubmit="return confirm('¿Estás seguro de eliminar a {{ $c->nombre }}?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                            <i class="bi bi-trash-fill"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                @if(auth()->user()->role === 'recepcion')
+                                                    <button class="btn btn-sm btn-secondary" disabled title="Recepción solo puede registrar y consultar">
+                                                        <i class="bi bi-lock-fill"></i>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </td>
                                         </tr>
                                     @empty
                                         <tr>

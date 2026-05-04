@@ -57,11 +57,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 });
 
-Route::middleware(['role:admin,gerente,recepcion'])->group(function () {
-    Route::resource('asistencias', App\Http\Controllers\AsistenciaController::class)->only(['index', 'store']);
-    Route::resource('pagos', App\Http\Controllers\PagoController::class)->only(['index', 'store']);
+Route::middleware(['auth', 'verified', 'role:admin,gerente,recepcion'])->group(function () {
+    Route::resource('asistencias', AsistenciaController::class)->only(['index', 'store']);
+    Route::resource('pagos', PagoController::class)->only(['index', 'store']);
 });
-
 
 Route::middleware(['auth', 'verified', 'role:admin,gerente'])->group(function () {
     Route::resource('membresias', MembresiaController::class)->except(['destroy']);
