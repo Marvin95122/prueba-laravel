@@ -6,6 +6,7 @@ use App\Http\Controllers\AsistenciaController; // Se usará en el próximo paso
 use App\Http\Controllers\PagoController; // Se usará en el próximo paso
 use App\Http\Controllers\MembresiaController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
 
 // ==========================================
 // 1. RUTAS PÚBLICAS (No requieren sesión)
@@ -23,9 +24,7 @@ Route::view('/contacto', 'contacto')->name('contacto');
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Módulo de Perfil (Generado por Laravel Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
