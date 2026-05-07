@@ -50,7 +50,28 @@ class ClienteController extends Controller
             ->orderBy('precio')
             ->get();
 
-        return view('clientes.index', compact('clientes', 'membresias'));
+
+        $clientesVencidosAlerta = Cliente::whereNotNull('vigencia_hasta')
+            ->whereDate('vigencia_hasta', '<', today())
+            ->count();
+
+        $clientesPorVencerAlerta = Cliente::where('estado', 'activa')
+            ->whereNotNull('vigencia_hasta')
+            ->whereBetween('vigencia_hasta', [
+                today()->toDateString(),
+                today()->addDays(7)->toDateString(),
+            ])
+            ->count();
+
+        $clientesInactivosAlerta = Cliente::where('estado', '!=', 'activa')->count();
+            
+        return view('clientes.index', compact(
+            'clientes',
+            'membresias',
+            'clientesVencidosAlerta',
+            'clientesPorVencerAlerta',
+            'clientesInactivosAlerta'
+        ));
     }
 
     public function create()

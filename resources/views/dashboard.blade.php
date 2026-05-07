@@ -76,6 +76,42 @@
             </div>
         </div>
 
+        @if($clientesVencidos > 0 || $clientesPorVencer->count() > 0 || $clientesInactivos > 0)
+            <div class="alert alert-warning shadow-sm mb-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <h6 class="fw-bold mb-1">
+                            <i class="bi bi-bell-fill me-2"></i>
+                            Alertas importantes del gimnasio
+                        </h6>
+                        <div class="small">
+                            Revisa los clientes vencidos, próximos a vencer o inactivos para evitar problemas en recepción.
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        @if($clientesVencidos > 0)
+                            <span class="badge bg-danger px-3 py-2">
+                                {{ $clientesVencidos }} vencidos
+                            </span>
+                        @endif
+
+                        @if($clientesPorVencer->count() > 0)
+                            <span class="badge bg-warning text-dark px-3 py-2">
+                                {{ $clientesPorVencer->count() }} por vencer
+                            </span>
+                        @endif
+
+                        @if($clientesInactivos > 0)
+                            <span class="badge bg-secondary px-3 py-2">
+                                {{ $clientesInactivos }} inactivos
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
         {{-- KPIs principales --}}
         <div class="row g-3 mb-4">
             <div class="col-md-6 col-xl-3">

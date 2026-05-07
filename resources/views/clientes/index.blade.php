@@ -141,6 +141,52 @@
             </div>
         @endif
 
+        @if(($clientesVencidosAlerta ?? 0) > 0 || ($clientesPorVencerAlerta ?? 0) > 0 || ($clientesInactivosAlerta ?? 0) > 0)
+            <div class="row g-3 mb-4">
+                @if(($clientesVencidosAlerta ?? 0) > 0)
+                    <div class="col-md-4">
+                        <div class="alert alert-danger shadow-sm mb-0 h-100">
+                            <div class="fw-bold">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                Membresías vencidas
+                            </div>
+                            <div class="small">
+                                Hay {{ $clientesVencidosAlerta }} cliente(s) con membresía vencida.
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @if(($clientesPorVencerAlerta ?? 0) > 0)
+                    <div class="col-md-4">
+                        <div class="alert alert-warning shadow-sm mb-0 h-100">
+                            <div class="fw-bold">
+                                <i class="bi bi-calendar-event-fill me-2"></i>
+                                Próximas a vencer
+                            </div>
+                            <div class="small">
+                                Hay {{ $clientesPorVencerAlerta }} membresía(s) por vencer en los próximos 7 días.
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @if(($clientesInactivosAlerta ?? 0) > 0)
+                    <div class="col-md-4">
+                        <div class="alert alert-secondary shadow-sm mb-0 h-100">
+                            <div class="fw-bold">
+                                <i class="bi bi-person-x-fill me-2"></i>
+                                Clientes inactivos
+                            </div>
+                            <div class="small">
+                                Hay {{ $clientesInactivosAlerta }} cliente(s) inactivos o bloqueados.
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         <div class="row g-4">
 
             {{-- Formulario lateral --}}
