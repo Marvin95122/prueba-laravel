@@ -28,6 +28,12 @@
                             <i class="bi bi-card-checklist"></i> Membresías
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('reportes.*') ? 'active fw-bold text-white' : '' }}"
+                        href="{{ route('reportes.index') }}">
+                            <i class="bi bi-bar-chart-fill"></i> Reportes
+                        </a>
+                    </li>
                 @endif
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('asistencias.*') ? 'active fw-bold text-white' : '' }}" href="{{ route('asistencias.index') }}">

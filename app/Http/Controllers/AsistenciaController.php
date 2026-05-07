@@ -9,14 +9,36 @@ use Illuminate\Http\Request;
 
 class AsistenciaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $clientes = Cliente::with('membresiaPlan')
             ->orderBy('nombre')
             ->get();
 
-        $asistencias = Asistencia::with(['cliente.membresiaPlan', 'user'])
-            ->whereDate('created_at', Carbon::today())
+        $fechaInicio = $request->filled('fecha_inicio')
+            ? Carbon::parse($request->fecha_inicio)->startOfDay()
+            : Carbon::today()->startOfDay();
+
+        $fechaFin = $request->filled('fecha_fin')
+            ? Carbon::parse($request->fecha_fin)->endOfDay()
+            : Carbon::today()->endOfDay();
+
+        $asistenciasConsulta = Asistencia::with(['cliente.membresiaPlan', 'user'])
+            ->where(function ($query) use ($fechaInicio, $fechaFin) {
+                $query->whereBetween('fecha_hora', [$fechaInicio, $fechaFin])
+                    ->orWhere(function ($q) use ($fechaInicio, $fechaFin) {
+                        $q->whereNull('fecha_hora')
+                        ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
+                    });
+            })
+            ->when($request->cliente_id, function ($query, $clienteId) {
+                $query->where('cliente_id', $clienteId);
+            })
+            ->when($request->resultado, function ($query, $resultado) {
+                $query->where('resultado', $resultado);
+            });
+
+        $asistencias = (clone $asistenciasConsulta)
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -34,7 +56,9 @@ class AsistenciaController extends Controller
             'permitidas',
             'denegadas',
             'totalHoy',
-            'clientesVencidos'
+            'clientesVencidos',
+            'fechaInicio',
+            'fechaFin'
         ));
     }
 

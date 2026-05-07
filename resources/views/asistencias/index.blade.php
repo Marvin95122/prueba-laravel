@@ -110,6 +110,61 @@
             </div>
         </div>
 
+        <div class="card card-custom shadow-sm mb-4">
+            <div class="card-header bg-header-custom py-3">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-funnel-fill text-success me-2"></i> Filtros de asistencias
+                </h6>
+            </div>
+
+            <div class="card-body">
+                <form method="GET" action="{{ route('asistencias.index') }}" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Cliente</label>
+                        <select name="cliente_id" class="form-select">
+                            <option value="">Todos</option>
+                            @foreach($clientes as $cliente)
+                                <option value="{{ $cliente->id }}" @selected(request('cliente_id') == $cliente->id)>
+                                    {{ $cliente->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Resultado</label>
+                        <select name="resultado" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="permitido" @selected(request('resultado') === 'permitido')>Permitido</option>
+                            <option value="denegado" @selected(request('resultado') === 'denegado')>Denegado</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Fecha inicio</label>
+                        <input type="date" name="fecha_inicio" class="form-control"
+                            value="{{ request('fecha_inicio', $fechaInicio->toDateString()) }}">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Fecha fin</label>
+                        <input type="date" name="fecha_fin" class="form-control"
+                            value="{{ request('fecha_fin', $fechaFin->toDateString()) }}">
+                    </div>
+
+                    <div class="col-md-12 d-flex gap-2 justify-content-end">
+                        <button class="btn btn-success fw-bold px-4" type="submit">
+                            <i class="bi bi-search"></i> Aplicar filtros
+                        </button>
+
+                        <a href="{{ route('asistencias.index') }}" class="btn btn-outline-secondary px-4">
+                            Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div class="row g-4">
 
             {{-- Formulario --}}

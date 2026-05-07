@@ -2,11 +2,13 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ClienteController;
-use App\Http\Controllers\AsistenciaController; // Se usará en el próximo paso
-use App\Http\Controllers\PagoController; // Se usará en el próximo paso
+use App\Http\Controllers\AsistenciaController;
+use App\Http\Controllers\PagoController;
 use App\Http\Controllers\MembresiaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReporteController;
+
 
 // ==========================================
 // 1. RUTAS PÚBLICAS (No requieren sesión)
@@ -47,6 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['auth', 'verified', 'role:admin,gerente'])->group(function () {
         Route::get('/clientes/{cliente}/edit', [ClienteController::class, 'edit'])->name('clientes.edit');
         Route::put('/clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');
+        Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes.index');
     });
 
     // Solo Admin: puede eliminar clientes.
@@ -59,6 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:admin,gerente,recepcion'])->group(function () {
     Route::resource('asistencias', AsistenciaController::class)->only(['index', 'store']);
     Route::resource('pagos', PagoController::class)->only(['index', 'store']);
+    Route::get('/pagos/{pago}/ticket', [PagoController::class, 'ticket'])->name('pagos.ticket');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin,gerente'])->group(function () {

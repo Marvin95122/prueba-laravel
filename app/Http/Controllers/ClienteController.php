@@ -14,11 +14,33 @@ class ClienteController extends Controller
             ->when($request->buscar, function ($query, $buscar) {
                 $query->where(function ($q) use ($buscar) {
                     $q->where('nombre', 'like', "%{$buscar}%")
-                      ->orWhere('telefono', 'like', "%{$buscar}%");
+                    ->orWhere('telefono', 'like', "%{$buscar}%");
                 });
             })
             ->when($request->estado, function ($query, $estado) {
                 $query->where('estado', $estado);
+            })
+            ->when($request->membresia_id, function ($query, $membresiaId) {
+                $query->where('membresia_id', $membresiaId);
+            })
+            ->when($request->vigencia, function ($query, $vigencia) {
+                if ($vigencia === 'vigente') {
+                    $query->whereNotNull('vigencia_hasta')
+                        ->whereDate('vigencia_hasta', '>=', today());
+                }
+
+                if ($vigencia === 'vencida') {
+                    $query->whereNotNull('vigencia_hasta')
+                        ->whereDate('vigencia_hasta', '<', today());
+                }
+
+                if ($vigencia === 'por_vencer') {
+                    $query->whereNotNull('vigencia_hasta')
+                        ->whereBetween('vigencia_hasta', [
+                            today()->toDateString(),
+                            today()->addDays(7)->toDateString(),
+                        ]);
+                }
             })
             ->orderBy('id', 'desc')
             ->paginate(10)
@@ -64,9 +86,49 @@ class ClienteController extends Controller
 
     public function show(Cliente $cliente)
     {
-        $cliente->load('membresiaPlan');
+        $cliente->load([
+            'membresiaPlan',
+            'pagos' => function ($query) {
+                $query->with(['membresia', 'user'])
+                    ->orderBy('created_at', 'desc');
+            },
+            'asistencias' => function ($query) {
+                $query->with('user')
+                    ->orderBy('created_at', 'desc');
+            },
+        ]);
 
-        return view('clientes.show', compact('cliente'));
+        $totalPagado = $cliente->pagos
+            ->where('estado', 'pagado')
+            ->sum('monto');
+
+        $totalPagos = $cliente->pagos->count();
+
+        $totalAsistencias = $cliente->asistencias->count();
+
+        $accesosPermitidos = $cliente->asistencias
+            ->where('resultado', 'permitido')
+            ->count();
+
+        $accesosDenegados = $cliente->asistencias
+            ->where('resultado', 'denegado')
+            ->count();
+
+        $diasRestantes = null;
+
+        if ($cliente->vigencia_hasta) {
+            $diasRestantes = today()->diffInDays($cliente->vigencia_hasta, false);
+        }
+
+        return view('clientes.show', compact(
+            'cliente',
+            'totalPagado',
+            'totalPagos',
+            'totalAsistencias',
+            'accesosPermitidos',
+            'accesosDenegados',
+            'diasRestantes'
+        ));
     }
 
     public function edit(Cliente $cliente)

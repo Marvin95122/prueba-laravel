@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class PagoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $clientes = Cliente::with('membresiaPlan')
             ->orderBy('nombre')
@@ -20,20 +20,43 @@ class PagoController extends Controller
             ->orderBy('precio')
             ->get();
 
-        $pagosHoy = Pago::with(['cliente.membresiaPlan', 'membresia', 'user'])
-            ->where(function ($query) {
-                $query->whereDate('fecha_pago', Carbon::today())
-                    ->orWhere(function ($q) {
+        $fechaInicio = $request->filled('fecha_inicio')
+            ? Carbon::parse($request->fecha_inicio)->startOfDay()
+            : Carbon::today()->startOfDay();
+
+        $fechaFin = $request->filled('fecha_fin')
+            ? Carbon::parse($request->fecha_fin)->endOfDay()
+            : Carbon::today()->endOfDay();
+
+        $pagosConsulta = Pago::with(['cliente.membresiaPlan', 'membresia', 'user'])
+            ->where(function ($query) use ($fechaInicio, $fechaFin) {
+                $query->whereBetween('fecha_pago', [$fechaInicio, $fechaFin])
+                    ->orWhere(function ($q) use ($fechaInicio, $fechaFin) {
                         $q->whereNull('fecha_pago')
-                          ->whereDate('created_at', Carbon::today());
+                        ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
                     });
             })
+            ->when($request->cliente_id, function ($query, $clienteId) {
+                $query->where('cliente_id', $clienteId);
+            })
+            ->when($request->metodo_pago, function ($query, $metodo) {
+                $query->where('metodo_pago', $metodo);
+            })
+            ->when($request->tipo_pago, function ($query, $tipo) {
+                $query->where('tipo_pago', $tipo);
+            })
+            ->when($request->estado, function ($query, $estado) {
+                $query->where('estado', $estado);
+            });
+
+        $pagosHoy = (clone $pagosConsulta)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $pagos = Pago::with(['cliente.membresiaPlan', 'membresia', 'user'])
+        $pagos = (clone $pagosConsulta)
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $totalCaja = $pagosHoy->where('estado', 'pagado')->sum('monto');
         $totalEfectivo = $pagosHoy->where('estado', 'pagado')->where('metodo_pago', 'Efectivo')->sum('monto');
@@ -53,7 +76,9 @@ class PagoController extends Controller
             'totalTarjeta',
             'totalTransferencia',
             'totalTickets',
-            'totalRenovaciones'
+            'totalRenovaciones',
+            'fechaInicio',
+            'fechaFin'
         ));
     }
 
@@ -159,5 +184,12 @@ class PagoController extends Controller
         return redirect()
             ->route('pagos.index')
             ->with('success', $mensaje);
+    }
+
+    public function ticket(Pago $pago)
+    {
+        $pago->load(['cliente.membresiaPlan', 'membresia', 'user']);
+
+        return view('pagos.ticket', compact('pago'));
     }
 }
