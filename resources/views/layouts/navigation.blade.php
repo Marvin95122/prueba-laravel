@@ -41,6 +41,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="{{ route('ejercicios.index') }}"
+                    class="nav-link {{ request()->routeIs('ejercicios.*') ? 'active fw-bold text-white' : '' }}">
+                        <i class="bi bi-activity"></i> Ejercicios
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('pagos.*') ? 'active fw-bold text-white' : '' }}" href="{{ route('pagos.index') }}">
                         <i class="bi bi-cash-coin"></i> Pagos
                     </a>

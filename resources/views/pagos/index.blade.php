@@ -148,6 +148,7 @@
                             <option value="Efectivo" @selected(request('metodo_pago') === 'Efectivo')>Efectivo</option>
                             <option value="Tarjeta" @selected(request('metodo_pago') === 'Tarjeta')>Tarjeta</option>
                             <option value="Transferencia" @selected(request('metodo_pago') === 'Transferencia')>Transferencia</option>
+                            <option value="Mercado Pago" @selected(request('metodo_pago') === 'Mercado Pago')>Mercado Pago</option>
                         </select>
                     </div>
 
@@ -273,6 +274,7 @@
                                     <option value="Efectivo" @selected(old('metodo_pago') === 'Efectivo')>Efectivo</option>
                                     <option value="Tarjeta" @selected(old('metodo_pago') === 'Tarjeta')>Tarjeta</option>
                                     <option value="Transferencia" @selected(old('metodo_pago') === 'Transferencia')>Transferencia</option>
+                                    <option value="Mercado Pago" @selected(old('metodo_pago') === 'Mercado Pago')>Mercado Pago</option>
                                 </select>
                             </div>
 
@@ -395,9 +397,17 @@
                                                     <span class="badge bg-primary-subtle text-primary border border-primary">
                                                         <i class="bi bi-credit-card"></i> Tarjeta
                                                     </span>
-                                                @else
+                                                @elseif($pago->metodo_pago === 'Transferencia')
                                                     <span class="badge bg-info-subtle text-info border border-info">
                                                         <i class="bi bi-bank"></i> Transferencia
+                                                    </span>
+                                                @elseif($pago->metodo_pago === 'Mercado Pago')
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning">
+                                                        <i class="bi bi-qr-code"></i> Mercado Pago
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-secondary">
+                                                        {{ $pago->metodo_pago }}
                                                     </span>
                                                 @endif
 
@@ -430,6 +440,13 @@
                                                 class="btn btn-sm btn-outline-success">
                                                     <i class="bi bi-printer-fill"></i> Ticket
                                                 </a>
+                                                @if($pago->metodo_pago === 'Mercado Pago' && $pago->mp_preference_id)
+                                                    <a href="{{ route('mercadopago.checkout', $pago) }}"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    title="Ver QR Mercado Pago">
+                                                        <i class="bi bi-qr-code"></i>
+                                                    </a>
+                                                @endif
                                             </td>
                                         </tr>
                                     @empty

@@ -8,6 +8,7 @@ use App\Http\Controllers\MembresiaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\EjercicioController;
 
 
 // ==========================================
@@ -16,6 +17,19 @@ use App\Http\Controllers\ReporteController;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+//Mercado Pago
+Route::get('/pagos/{pago}/mercadopago/success', [PagoController::class, 'successMercadoPago'])
+    ->name('mercadopago.success');
+
+Route::get('/pagos/{pago}/mercadopago/pending', [PagoController::class, 'pendingMercadoPago'])
+    ->name('mercadopago.pending');
+
+Route::get('/pagos/{pago}/mercadopago/failure', [PagoController::class, 'failureMercadoPago'])
+    ->name('mercadopago.failure');
+
+Route::post('/mercadopago/webhook', [PagoController::class, 'webhookMercadoPago'])
+    ->name('mercadopago.webhook');
 
 Route::view('/galeria', 'galeria')->name('galeria');
 Route::view('/contacto', 'contacto')->name('contacto');
@@ -61,8 +75,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::middleware(['auth', 'verified', 'role:admin,gerente,recepcion'])->group(function () {
     Route::resource('asistencias', AsistenciaController::class)->only(['index', 'store']);
+    Route::get('/ejercicios', [EjercicioController::class, 'index'])->name('ejercicios.index');
     Route::resource('pagos', PagoController::class)->only(['index', 'store']);
     Route::get('/pagos/{pago}/ticket', [PagoController::class, 'ticket'])->name('pagos.ticket');
+
+    // Mercado Pago
+    Route::get('/pagos/{pago}/mercadopago/generar', [PagoController::class, 'generarMercadoPago'])
+    ->name('mercadopago.generar');
+
+    Route::get('/pagos/{pago}/mercadopago/checkout', [PagoController::class, 'checkoutMercadoPago'])
+        ->name('mercadopago.checkout');
+
+    Route::post('/pagos/{pago}/mercadopago/verificar', [PagoController::class, 'verificarMercadoPago'])
+        ->name('mercadopago.verificar');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin,gerente'])->group(function () {

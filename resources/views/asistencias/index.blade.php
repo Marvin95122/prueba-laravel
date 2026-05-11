@@ -190,7 +190,10 @@
                                                 data-nombre="{{ $cliente->nombre }}"
                                                 data-membresia="{{ $cliente->nombre_membresia }}"
                                                 data-estado="{{ $cliente->estado }}"
-                                                data-vigencia="{{ $cliente->vigencia_hasta ? $cliente->vigencia_hasta->format('d/m/Y') : 'Sin fecha' }}">
+                                                data-vigencia="{{ $cliente->vigencia_hasta ? $cliente->vigencia_hasta->format('d/m/Y') : 'Sin fecha' }}"
+                                                data-vigencia-raw="{{ $cliente->vigencia_hasta ? $cliente->vigencia_hasta->format('Y-m-d') : '' }}"
+                                                data-puede-acceder="{{ $cliente->puede_acceder ? '1' : '0' }}"
+                                                data-motivo="{{ $cliente->motivo_bloqueo }}">
                                             {{ $cliente->nombre }} - {{ $cliente->nombre_membresia }}
                                             @if($cliente->vigencia_hasta)
                                                 (vence {{ $cliente->vigencia_hasta->format('d/m/Y') }})
@@ -213,6 +216,7 @@
                                     Estado:
                                     <span class="badge bg-secondary" id="previewEstado">---</span>
                                 </div>
+                                <div class="mt-3" id="previewAlerta"></div>
                             </div>
 
                             <button type="submit" class="btn btn-success w-100 fw-bold py-3 shadow-sm">
@@ -331,6 +335,7 @@
             const previewMembresia = document.getElementById('previewMembresia');
             const previewVigencia = document.getElementById('previewVigencia');
             const previewEstado = document.getElementById('previewEstado');
+            const previewAlerta = document.getElementById('previewAlerta');
 
             function actualizarPreview() {
                 const option = selectCliente.options[selectCliente.selectedIndex];
@@ -341,6 +346,7 @@
                     previewVigencia.textContent = '---';
                     previewEstado.textContent = '---';
                     previewEstado.className = 'badge bg-secondary';
+                    previewAlerta.innerHTML = '';
                     return;
                 }
 
@@ -348,16 +354,30 @@
                 const membresia = option.dataset.membresia;
                 const vigencia = option.dataset.vigencia;
                 const estado = option.dataset.estado;
+                const puedeAcceder = option.dataset.puedeAcceder === '1';
+                const motivo = option.dataset.motivo;
 
                 previewNombre.textContent = nombre;
                 previewMembresia.textContent = membresia;
                 previewVigencia.textContent = vigencia;
                 previewEstado.textContent = estado;
 
-                if (estado === 'activa') {
+                if (puedeAcceder) {
                     previewEstado.className = 'badge bg-success';
+                    previewAlerta.innerHTML = `
+                        <div class="alert alert-success mb-0 py-2">
+                            <i class="bi bi-check-circle-fill me-1"></i>
+                            Cliente con acceso permitido.
+                        </div>
+                    `;
                 } else {
                     previewEstado.className = 'badge bg-danger';
+                    previewAlerta.innerHTML = `
+                        <div class="alert alert-danger mb-0 py-2">
+                            <i class="bi bi-x-circle-fill me-1"></i>
+                            Acceso bloqueado: ${motivo}
+                        </div>
+                    `;
                 }
             }
 

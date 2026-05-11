@@ -7,6 +7,10 @@ use App\Models\Membresia;
 use App\Models\Pago;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use MercadoPago\Client\Payment\PaymentClient;
+use MercadoPago\Client\Preference\PreferenceClient;
+use MercadoPago\MercadoPagoConfig;
+use MercadoPago\Exceptions\MPApiException;
 
 class PagoController extends Controller
 {
@@ -33,7 +37,7 @@ class PagoController extends Controller
                 $query->whereBetween('fecha_pago', [$fechaInicio, $fechaFin])
                     ->orWhere(function ($q) use ($fechaInicio, $fechaFin) {
                         $q->whereNull('fecha_pago')
-                        ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
+                            ->whereBetween('created_at', [$fechaInicio, $fechaFin]);
                     });
             })
             ->when($request->cliente_id, function ($query, $clienteId) {
@@ -91,7 +95,7 @@ class PagoController extends Controller
             'concepto' => ['nullable', 'string', 'max:120'],
             'monto' => ['required', 'numeric', 'min:1'],
             'monto_recibido' => ['nullable', 'numeric', 'min:0'],
-            'metodo_pago' => ['required', 'in:Efectivo,Tarjeta,Transferencia'],
+            'metodo_pago' => ['required', 'in:Efectivo,Tarjeta,Transferencia,Mercado Pago'],
             'referencia' => ['nullable', 'string', 'max:120'],
             'estado' => ['required', 'in:pagado,pendiente,cancelado'],
             'notas' => ['nullable', 'string', 'max:500'],
@@ -127,13 +131,30 @@ class PagoController extends Controller
             $cambio = 0;
         }
 
-        if ($requiereMembresia && $data['estado'] === 'pagado') {
+        if ($requiereMembresia) {
             $membresia = Membresia::findOrFail($data['membresia_id']);
 
             $concepto = $data['tipo_pago'] === 'inscripcion'
                 ? 'Inscripción - ' . $membresia->nombre
                 : 'Renovación - ' . $membresia->nombre;
+        } else {
+            $concepto = match ($data['tipo_pago']) {
+                'visita' => 'Visita por día',
+                'producto' => $data['concepto'] ?: 'Venta de producto',
+                'otro' => $data['concepto'] ?: 'Otro cobro',
+                default => $data['concepto'] ?: 'Cobro general',
+            };
+        }
 
+        /*
+         * Si el método es Mercado Pago, el pago se guarda como pendiente.
+         * La membresía se renovará hasta que Mercado Pago confirme el pago.
+         */
+        $estadoInicial = $data['metodo_pago'] === 'Mercado Pago'
+            ? 'pendiente'
+            : $data['estado'];
+
+        if ($requiereMembresia && $estadoInicial === 'pagado') {
             $fechaBase = $cliente->vigencia_hasta && $cliente->vigencia_hasta->gte(today())
                 ? $cliente->vigencia_hasta->copy()
                 : today();
@@ -146,15 +167,30 @@ class PagoController extends Controller
                 'vigencia_hasta' => $nuevaVigencia->toDateString(),
                 'estado' => 'activa',
             ]);
-        } else {
-            $concepto = match ($data['tipo_pago']) {
-                'visita' => 'Visita por día',
-                'producto' => $data['concepto'] ?: 'Venta de producto',
-                'otro' => $data['concepto'] ?: 'Otro cobro',
-                default => $data['concepto'] ?: 'Cobro general',
-            };
         }
 
+        if ($data['metodo_pago'] === 'Mercado Pago') {
+            $pagoPendiente = Pago::where('cliente_id', $cliente->id)
+                ->where('metodo_pago', 'Mercado Pago')
+                ->where('estado', 'pendiente')
+                ->where('tipo_pago', $data['tipo_pago'])
+                ->where('monto', $monto)
+                ->where('created_at', '>=', now()->subMinutes(15))
+                ->latest()
+                ->first();
+
+            if ($pagoPendiente) {
+                if ($pagoPendiente->mp_preference_id) {
+                    return redirect()
+                        ->route('mercadopago.checkout', $pagoPendiente)
+                        ->with('success', 'Ya existía un cobro pendiente reciente. Se abrió el mismo QR.');
+                }
+
+                return redirect()
+                    ->route('mercadopago.generar', $pagoPendiente)
+                    ->with('success', 'Ya existía un cobro pendiente reciente. Se intentará generar nuevamente Mercado Pago.');
+            }
+        }
         $pago = Pago::create([
             'cliente_id' => $cliente->id,
             'membresia_id' => $membresia?->id,
@@ -166,8 +202,8 @@ class PagoController extends Controller
             'tipo_pago' => $data['tipo_pago'],
             'metodo_pago' => $data['metodo_pago'],
             'referencia' => $data['referencia'] ?? null,
-            'estado' => $data['estado'],
-            'fecha_pago' => now(),
+            'estado' => $estadoInicial,
+            'fecha_pago' => $estadoInicial === 'pagado' ? now() : null,
             'notas' => $data['notas'] ?? null,
         ]);
 
@@ -175,9 +211,13 @@ class PagoController extends Controller
             'folio' => 'PG-' . now()->format('Ymd') . '-' . str_pad($pago->id, 5, '0', STR_PAD_LEFT),
         ]);
 
+        if ($data['metodo_pago'] === 'Mercado Pago') {
+            return redirect()->route('mercadopago.generar', $pago);
+        }
+
         $mensaje = 'Pago registrado correctamente.';
 
-        if ($requiereMembresia && $data['estado'] === 'pagado') {
+        if ($requiereMembresia && $estadoInicial === 'pagado') {
             $mensaje = 'Pago registrado y membresía actualizada. Nueva vigencia: ' . $nuevaVigencia->format('d/m/Y');
         }
 
@@ -191,5 +231,275 @@ class PagoController extends Controller
         $pago->load(['cliente.membresiaPlan', 'membresia', 'user']);
 
         return view('pagos.ticket', compact('pago'));
+    }
+
+    private function aplicarRenovacionSiCorresponde(Pago $pago): void
+    {
+        if (!in_array($pago->tipo_pago, ['renovacion', 'inscripcion'], true)) {
+            return;
+        }
+
+        if (!$pago->cliente || !$pago->membresia) {
+            return;
+        }
+
+        $cliente = $pago->cliente;
+        $membresia = $pago->membresia;
+
+        $fechaBase = $cliente->vigencia_hasta && $cliente->vigencia_hasta->gte(today())
+            ? $cliente->vigencia_hasta->copy()
+            : today();
+
+        $nuevaVigencia = $fechaBase->copy()->addDays($membresia->duracion_dias);
+
+        $cliente->update([
+            'membresia_id' => $membresia->id,
+            'membresia' => strtolower($membresia->nombre),
+            'vigencia_hasta' => $nuevaVigencia->toDateString(),
+            'estado' => 'activa',
+        ]);
+    }
+
+    public function generarMercadoPago(Pago $pago)
+    {
+        $pago->load(['cliente.membresiaPlan', 'membresia', 'user']);
+
+        if ($pago->estado === 'pagado') {
+            return redirect()
+                ->route('pagos.ticket', $pago)
+                ->with('success', 'Este pago ya se encuentra pagado.');
+        }
+
+        MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
+
+        $externalReference = $pago->mp_external_reference ?: 'GYM-PAGO-' . $pago->id . '-' . now()->timestamp;
+
+        $client = new PreferenceClient();
+
+        $preferenceData = [
+            'items' => [
+                [
+                    'title' => $pago->concepto ?: 'Pago GymControl',
+                    'quantity' => 1,
+                    'unit_price' => (float) $pago->monto,
+                    'currency_id' => 'MXN',
+                ],
+            ],
+            'external_reference' => $externalReference,
+            'payer' => [
+                'name' => $pago->cliente?->nombre ?? 'Cliente GymControl',
+            ],
+            'statement_descriptor' => 'GYMCONTROL',
+        ];
+
+        /*
+        * En local no mandamos back_urls ni notification_url porque 127.0.0.1/http
+        * puede ser rechazado por Mercado Pago.
+        * Cuando usemos ngrok o servidor HTTPS, las agregamos de nuevo.
+        */
+        $baseUrl = rtrim(config('app.url'), '/');
+
+        /*
+        * Si por error APP_URL quedó con http en ngrok,
+        * lo forzamos a https para que Mercado Pago acepte las back_urls.
+        */
+        if (str_contains($baseUrl, 'ngrok') && str_starts_with($baseUrl, 'http://')) {
+            $baseUrl = str_replace('http://', 'https://', $baseUrl);
+        }
+
+        $esLocal = str_contains($baseUrl, '127.0.0.1')
+            || str_contains($baseUrl, 'localhost')
+            || !str_starts_with($baseUrl, 'https://');
+
+        if (!$esLocal) {
+            $preferenceData['back_urls'] = [
+                'success' => $baseUrl . '/pagos/' . $pago->id . '/mercadopago/success',
+                'failure' => $baseUrl . '/pagos/' . $pago->id . '/mercadopago/failure',
+                'pending' => $baseUrl . '/pagos/' . $pago->id . '/mercadopago/pending',
+            ];
+
+            $preferenceData['auto_return'] = 'approved';
+            $preferenceData['notification_url'] = $baseUrl . '/mercadopago/webhook';
+        }
+
+        try {
+            $preference = $client->create($preferenceData);
+        } catch (MPApiException $e) {
+            $apiResponse = $e->getApiResponse();
+
+            $statusCode = $apiResponse?->getStatusCode();
+            $content = $apiResponse?->getContent();
+
+            return redirect()
+                ->route('pagos.index')
+                ->with('error', 'Error Mercado Pago ' . $statusCode . ': ' . json_encode($content));
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('pagos.index')
+                ->with('error', 'Error general al generar Mercado Pago: ' . $e->getMessage());
+        }
+
+        $pago->update([
+            'mp_preference_id' => $preference->id ?? null,
+            'mp_external_reference' => $externalReference,
+            'mp_init_point' => $preference->init_point ?? null,
+            'mp_sandbox_init_point' => $preference->sandbox_init_point ?? null,
+            'mp_status' => 'created',
+            'estado' => 'pendiente',
+        ]);
+
+        return redirect()->route('mercadopago.checkout', $pago);
+    }
+
+    public function checkoutMercadoPago(Pago $pago)
+    {
+        $pago->load(['cliente.membresiaPlan', 'membresia', 'user']);
+
+        $urlPago = config('services.mercadopago.sandbox')
+            ? ($pago->mp_sandbox_init_point ?: $pago->mp_init_point)
+            : ($pago->mp_init_point ?: $pago->mp_sandbox_init_point);
+
+        if (!$urlPago) {
+            return redirect()
+                ->route('pagos.index')
+                ->with('error', 'Este pago no tiene enlace de Mercado Pago. Genera nuevamente la preferencia.');
+        }
+
+        return view('pagos.mercadopago-checkout', compact('pago', 'urlPago'));
+    }
+
+    public function successMercadoPago(Pago $pago)
+    {
+        $pago->load(['cliente', 'membresia']);
+
+        $paymentId = request('payment_id');
+
+        if ($paymentId) {
+            MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
+
+            $paymentClient = new PaymentClient();
+            $payment = $paymentClient->get($paymentId);
+
+            $status = $payment->status ?? request('status');
+
+            $pago->update([
+                'mp_payment_id' => $paymentId,
+                'mp_status' => $status,
+            ]);
+
+            if ($status === 'approved') {
+                $pago->update([
+                    'estado' => 'pagado',
+                    'fecha_pago' => now(),
+                    'monto_recibido' => $pago->monto,
+                    'cambio' => 0,
+                ]);
+
+                $this->aplicarRenovacionSiCorresponde($pago);
+
+                return redirect()
+                    ->route('pagos.ticket', $pago)
+                    ->with('success', 'Pago aprobado por Mercado Pago.');
+            }
+        }
+
+        return redirect()
+            ->route('pagos.index')
+            ->with('success', 'Mercado Pago regresó al sistema. Revisa el estado del pago.');
+    }
+
+    public function pendingMercadoPago(Pago $pago)
+    {
+        $pago->update([
+            'mp_status' => request('status', 'pending'),
+            'estado' => 'pendiente',
+        ]);
+
+        return redirect()
+            ->route('pagos.index')
+            ->with('success', 'El pago quedó pendiente en Mercado Pago.');
+    }
+
+    public function failureMercadoPago(Pago $pago)
+    {
+        $pago->update([
+            'mp_status' => request('status', 'failure'),
+        ]);
+
+        return redirect()
+            ->route('pagos.index')
+            ->with('error', 'El pago no fue aprobado o fue cancelado.');
+    }
+
+    public function verificarMercadoPago(Pago $pago)
+    {
+        if (!$pago->mp_payment_id) {
+            return back()->with('error', 'Este pago todavía no tiene payment_id de Mercado Pago.');
+        }
+
+        MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
+
+        $paymentClient = new PaymentClient();
+        $payment = $paymentClient->get($pago->mp_payment_id);
+
+        $status = $payment->status ?? null;
+
+        $pago->update([
+            'mp_status' => $status,
+        ]);
+
+        if ($status === 'approved' && $pago->estado !== 'pagado') {
+            $pago->update([
+                'estado' => 'pagado',
+                'fecha_pago' => now(),
+                'monto_recibido' => $pago->monto,
+                'cambio' => 0,
+            ]);
+
+            $pago->load(['cliente', 'membresia']);
+            $this->aplicarRenovacionSiCorresponde($pago);
+        }
+
+        return back()->with('success', 'Estado consultado en Mercado Pago: ' . ($status ?? 'sin estado'));
+    }
+
+    public function webhookMercadoPago()
+    {
+        $type = request('type') ?? request('topic');
+        $paymentId = request('data.id') ?? request('id');
+
+        if ($type === 'payment' && $paymentId) {
+            MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
+
+            $paymentClient = new PaymentClient();
+            $payment = $paymentClient->get($paymentId);
+
+            $externalReference = $payment->external_reference ?? null;
+
+            if ($externalReference) {
+                $pago = Pago::where('mp_external_reference', $externalReference)->first();
+
+                if ($pago) {
+                    $pago->update([
+                        'mp_payment_id' => $paymentId,
+                        'mp_status' => $payment->status ?? null,
+                    ]);
+
+                    if (($payment->status ?? null) === 'approved' && $pago->estado !== 'pagado') {
+                        $pago->update([
+                            'estado' => 'pagado',
+                            'fecha_pago' => now(),
+                            'monto_recibido' => $pago->monto,
+                            'cambio' => 0,
+                        ]);
+
+                        $pago->load(['cliente', 'membresia']);
+                        $this->aplicarRenovacionSiCorresponde($pago);
+                    }
+                }
+            }
+        }
+
+        return response()->json(['ok' => true], 200);
     }
 }

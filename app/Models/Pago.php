@@ -24,6 +24,14 @@ class Pago extends Model
         'estado',
         'fecha_pago',
         'notas',
+
+        // Mercado Pago
+        'mp_preference_id',
+        'mp_payment_id',
+        'mp_external_reference',
+        'mp_init_point',
+        'mp_sandbox_init_point',
+        'mp_status',
     ];
 
     protected $casts = [
