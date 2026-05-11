@@ -98,5 +98,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::delete('/membresias/{membresia}', [MembresiaController::class, 'destroy'])
         ->name('membresias.destroy');
 });
+
+Route::get('/health', function () {
+    return response('OK', 200);
+});
 // Carga las rutas de autenticación (Login, Registro, etc.)
 require __DIR__.'/auth.php';
