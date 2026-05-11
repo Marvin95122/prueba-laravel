@@ -11,6 +11,7 @@ use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Exceptions\MPApiException;
+use Illuminate\Support\Facades\Http;
 
 class PagoController extends Controller
 {
@@ -433,19 +434,87 @@ class PagoController extends Controller
 
     public function verificarMercadoPago(Pago $pago)
     {
-        if (!$pago->mp_payment_id) {
-            return back()->with('error', 'Este pago todavía no tiene payment_id de Mercado Pago.');
+        try {
+            MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
+
+            $paymentData = null;
+
+            if ($pago->mp_payment_id) {
+                $paymentClient = new PaymentClient();
+                $payment = $paymentClient->get($pago->mp_payment_id);
+
+                $paymentData = json_decode(json_encode($payment), true);
+            } else {
+                $paymentData = $this->buscarPagoMercadoPagoPorReferencia($pago->mp_external_reference);
+            }
+
+            if (!$paymentData) {
+                return back()->with(
+                    'error',
+                    'No se encontró un pago aprobado todavía en Mercado Pago. Espera unos segundos y vuelve a verificar.'
+                );
+            }
+
+            $this->actualizarPagoDesdeMercadoPago($pago, $paymentData);
+
+            $pago->refresh();
+
+            if ($pago->estado === 'pagado') {
+                return redirect()
+                    ->route('pagos.ticket', $pago)
+                    ->with('success', 'Pago aprobado y actualizado desde Mercado Pago.');
+            }
+
+            return back()->with(
+                'success',
+                'Estado consultado en Mercado Pago: ' . ($pago->mp_status ?? 'sin estado')
+            );
+        } catch (\Exception $e) {
+            return back()->with(
+                'error',
+                'No se pudo verificar el pago en Mercado Pago: ' . $e->getMessage()
+            );
+        }
+    }
+
+    private function buscarPagoMercadoPagoPorReferencia(?string $externalReference): ?array
+    {
+        if (!$externalReference) {
+            return null;
         }
 
-        MercadoPagoConfig::setAccessToken(config('services.mercadopago.access_token'));
+        $response = Http::withToken(config('services.mercadopago.access_token'))
+            ->acceptJson()
+            ->timeout(20)
+            ->get('https://api.mercadopago.com/v1/payments/search', [
+                'external_reference' => $externalReference,
+                'sort' => 'date_created',
+                'criteria' => 'desc',
+            ]);
 
-        $paymentClient = new PaymentClient();
-        $payment = $paymentClient->get($pago->mp_payment_id);
+        if (!$response->successful()) {
+            throw new \Exception(
+                'Error consultando payments/search. Código: ' . $response->status() . ' - ' . $response->body()
+            );
+        }
 
-        $status = $payment->status ?? null;
+        $resultados = $response->json('results') ?? [];
+
+        if (empty($resultados)) {
+            return null;
+        }
+
+        return collect($resultados)->firstWhere('status', 'approved') ?? $resultados[0];
+    }
+
+    private function actualizarPagoDesdeMercadoPago(Pago $pago, array $paymentData): void
+    {
+        $status = $paymentData['status'] ?? null;
+        $paymentId = $paymentData['id'] ?? null;
 
         $pago->update([
-            'mp_status' => $status,
+            'mp_payment_id' => $paymentId ?: $pago->mp_payment_id,
+            'mp_status' => $status ?: $pago->mp_status,
         ]);
 
         if ($status === 'approved' && $pago->estado !== 'pagado') {
@@ -454,13 +523,13 @@ class PagoController extends Controller
                 'fecha_pago' => now(),
                 'monto_recibido' => $pago->monto,
                 'cambio' => 0,
+                'referencia' => $pago->referencia ?: 'Mercado Pago ' . $paymentId,
             ]);
 
             $pago->load(['cliente', 'membresia']);
+
             $this->aplicarRenovacionSiCorresponde($pago);
         }
-
-        return back()->with('success', 'Estado consultado en Mercado Pago: ' . ($status ?? 'sin estado'));
     }
 
     public function webhookMercadoPago()
