@@ -44,4 +44,11 @@ return [
     'api_ninjas' => [
         'key' => env('API_NINJAS_KEY'),
     ],
+
+    'open_meteo' => [
+        'latitude' => env('OPEN_METEO_LATITUDE', 17.0732),
+        'longitude' => env('OPEN_METEO_LONGITUDE', -96.7266),
+        'city' => env('OPEN_METEO_CITY', 'Oaxaca de Juárez'),
+        'timezone' => env('OPEN_METEO_TIMEZONE', 'America/Mexico_City'),
+    ],
 ];

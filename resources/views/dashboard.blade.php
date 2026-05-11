@@ -76,6 +76,98 @@
             </div>
         </div>
 
+        {{-- API Open-Meteo: Clima actual --}}
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                            style="width: 58px; height: 58px; background: #eaf7ee; color: #198754;">
+                            <i class="bi {{ ($clima['ok'] ?? false) ? $clima['icono'] : 'bi-cloud-slash-fill' }} fs-3"></i>
+                        </div>
+
+                        <div>
+                            <h5 class="fw-bold mb-1">
+                                Clima actual en {{ $clima['ciudad'] ?? 'Oaxaca de Juárez' }}
+                            </h5>
+
+                            <small class="text-muted">
+                                Información obtenida desde {{ $clima['fuente'] ?? 'Open-Meteo API' }}
+                            </small>
+                        </div>
+                    </div>
+
+                    @if($clima['ok'] ?? false)
+                        <div class="text-lg-end">
+                            <div class="fs-2 fw-bold text-success">
+                                {{ number_format($clima['temperatura'], 1) }}°C
+                            </div>
+
+                            <div class="fw-semibold text-dark">
+                                {{ $clima['condicion'] }}
+                            </div>
+
+                            <small class="text-muted">
+                                Actualizado: {{ \Carbon\Carbon::parse($clima['hora'])->format('d/m/Y h:i A') }}
+                            </small>
+                        </div>
+                    @else
+                        <div class="alert alert-warning mb-0">
+                            {{ $clima['mensaje'] ?? 'No se pudo consultar el clima.' }}
+                        </div>
+                    @endif
+                </div>
+
+                @if($clima['ok'] ?? false)
+                    <hr>
+
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="p-3 rounded bg-light h-100">
+                                <small class="text-muted d-block">Sensación térmica</small>
+                                <span class="fw-bold">
+                                    {{ number_format($clima['sensacion'], 1) }}°C
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="p-3 rounded bg-light h-100">
+                                <small class="text-muted d-block">Humedad</small>
+                                <span class="fw-bold">
+                                    {{ $clima['humedad'] }}%
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="p-3 rounded bg-light h-100">
+                                <small class="text-muted d-block">Viento</small>
+                                <span class="fw-bold">
+                                    {{ number_format($clima['viento'], 1) }} km/h
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <div class="p-3 rounded bg-light h-100">
+                                <small class="text-muted d-block">Precipitación</small>
+                                <span class="fw-bold">
+                                    {{ number_format($clima['precipitacion'], 1) }} mm
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success mt-3 mb-0">
+                        <i class="bi bi-lightbulb-fill me-2"></i>
+                        {{ $clima['recomendacion'] }}
+                    </div>
+                @endif
+            </div>
+        </div>
+
         @if($clientesVencidos > 0 || $clientesPorVencer->count() > 0 || $clientesInactivos > 0)
             <div class="alert alert-warning shadow-sm mb-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
