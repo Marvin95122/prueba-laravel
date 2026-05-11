@@ -11,10 +11,10 @@ class OpenMeteoService
     {
         try {
             return Cache::remember('open_meteo_clima_actual', now()->addMinutes(20), function () {
-                $latitude = config('services.open_meteo.latitude');
-                $longitude = config('services.open_meteo.longitude');
-                $timezone = config('services.open_meteo.timezone');
-                $city = config('services.open_meteo.city');
+                $latitude = (float) (config('services.open_meteo.latitude') ?: 17.0732);
+                $longitude = (float) (config('services.open_meteo.longitude') ?: -96.7266);
+                $timezone = config('services.open_meteo.timezone') ?: 'auto';
+                $city = config('services.open_meteo.city') ?: 'Oaxaca de Juárez';
 
                 $response = Http::acceptJson()
                     ->timeout(15)
@@ -36,7 +36,11 @@ class OpenMeteoService
                     ]);
 
                 if (!$response->successful()) {
-                    return $this->respuestaError('No se pudo consultar Open-Meteo. Código: ' . $response->status());
+                    $detalle = $response->json('reason') ?: $response->body();
+
+                    return $this->respuestaError(
+                        'No se pudo consultar Open-Meteo. Código: ' . $response->status() . ' - ' . $detalle
+                    );
                 }
 
                 $data = $response->json();
