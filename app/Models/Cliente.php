@@ -41,8 +41,8 @@ class Cliente extends Model
 
     public function getMembresiaVencidaAttribute()
     {
-        if (!$this->vigencia_hasta) {
-            return true;
+        if (!$this->membresia_id || !$this->vigencia_hasta) {
+            return false;
         }
 
         return $this->vigencia_hasta->lt(today());
@@ -104,16 +104,16 @@ class Cliente extends Model
 
     public function getMotivoBloqueoAttribute()
     {
-        if ($this->estado !== 'activa') {
-            return 'Cliente inactivo o suspendido';
-        }
-
         if (!$this->membresia_id) {
             return 'Sin membresía asignada';
         }
 
         if (!$this->vigencia_hasta) {
             return 'Sin fecha de vigencia';
+        }
+
+        if ($this->estado !== 'activa') {
+            return 'Cliente inactivo o suspendido';
         }
 
         if ($this->vigencia_hasta->lt(today())) {

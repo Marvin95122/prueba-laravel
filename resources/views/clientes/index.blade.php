@@ -215,7 +215,7 @@
                                 >
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <label class="form-label fw-semibold">Teléfono</label>
                                 <input
                                     type="text"
@@ -226,52 +226,9 @@
                                 >
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Membresía</label>
-                                <select name="membresia_id" id="membresia_id" class="form-select" required>
-                                    <option value="">Selecciona una membresía</option>
-
-                                    @foreach($membresias as $membresia)
-                                        <option
-                                            value="{{ $membresia->id }}"
-                                            data-duracion="{{ $membresia->duracion_dias }}"
-                                            data-precio="{{ $membresia->precio }}"
-                                            @selected(old('membresia_id') == $membresia->id)
-                                        >
-                                            {{ $membresia->nombre }}
-                                            - ${{ number_format($membresia->precio, 2) }}
-                                            / {{ $membresia->duracion_dias }} días
-                                        </option>
-                                    @endforeach
-                                </select>
-
-                                <small class="text-muted">
-                                    Al seleccionar un plan se puede calcular la vigencia automáticamente.
-                                </small>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Vigencia hasta</label>
-                                <input
-                                    type="date"
-                                    name="vigencia_hasta"
-                                    id="vigencia_hasta"
-                                    class="form-control"
-                                    required
-                                    value="{{ old('vigencia_hasta') }}"
-                                >
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold">Estado</label>
-                                <select name="estado" class="form-select" required>
-                                    <option value="activa" @selected(old('estado') === 'activa')>
-                                        Activa - Permitir acceso
-                                    </option>
-                                    <option value="inactiva" @selected(old('estado') === 'inactiva')>
-                                        Inactiva - Bloquear acceso
-                                    </option>
-                                </select>
+                            <div class="alert alert-info small">
+                                <i class="bi bi-info-circle-fill me-1"></i>
+                                El cliente se registra sin membresía y sin acceso. La membresía se activará hasta registrar un pago de inscripción o renovación.
                             </div>
 
                             <button type="submit" class="btn btn-success w-100 fw-bold shadow-sm py-2">
@@ -352,6 +309,9 @@
                                     </option>
                                     <option value="por_vencer" @selected(request('vigencia') === 'por_vencer')>
                                         Por vencer
+                                    </option>
+                                    <option value="sin_membresia" @selected(request('vigencia') === 'sin_membresia')>
+                                        Sin membresía
                                     </option>
                                 </select>
                             </div>

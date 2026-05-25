@@ -14,7 +14,7 @@ class ClienteController extends Controller
             ->when($request->buscar, function ($query, $buscar) {
                 $query->where(function ($q) use ($buscar) {
                     $q->where('nombre', 'like', "%{$buscar}%")
-                    ->orWhere('telefono', 'like', "%{$buscar}%");
+                        ->orWhere('telefono', 'like', "%{$buscar}%");
                 });
             })
             ->when($request->estado, function ($query, $estado) {
@@ -24,6 +24,10 @@ class ClienteController extends Controller
                 $query->where('membresia_id', $membresiaId);
             })
             ->when($request->vigencia, function ($query, $vigencia) {
+                if ($vigencia === 'sin_membresia') {
+                    $query->whereNull('membresia_id');
+                }
+
                 if ($vigencia === 'vigente') {
                     $query->whereNotNull('vigencia_hasta')
                         ->whereDate('vigencia_hasta', '>=', today());
@@ -50,7 +54,6 @@ class ClienteController extends Controller
             ->orderBy('precio')
             ->get();
 
-
         $clientesVencidosAlerta = Cliente::whereNotNull('vigencia_hasta')
             ->whereDate('vigencia_hasta', '<', today())
             ->count();
@@ -64,7 +67,7 @@ class ClienteController extends Controller
             ->count();
 
         $clientesInactivosAlerta = Cliente::where('estado', '!=', 'activa')->count();
-            
+
         return view('clientes.index', compact(
             'clientes',
             'membresias',
@@ -76,11 +79,7 @@ class ClienteController extends Controller
 
     public function create()
     {
-        $membresias = Membresia::where('estado', 'activa')
-            ->orderBy('precio')
-            ->get();
-
-        return view('clientes.create', compact('membresias'));
+        return view('clientes.create');
     }
 
     public function store(Request $request)
@@ -88,21 +87,20 @@ class ClienteController extends Controller
         $data = $request->validate([
             'nombre' => ['required', 'string', 'min:3', 'max:80'],
             'telefono' => ['nullable', 'string', 'max:15'],
-            'membresia_id' => ['required', 'exists:membresias,id'],
-            'vigencia_hasta' => ['required', 'date'],
-            'estado' => ['required', 'in:activa,inactiva'],
         ]);
 
-        $membresia = Membresia::findOrFail($data['membresia_id']);
-
-        // Se conserva para compatibilidad con registros anteriores.
-        $data['membresia'] = strtolower($membresia->nombre);
-
-        Cliente::create($data);
+        Cliente::create([
+            'nombre' => $data['nombre'],
+            'telefono' => $data['telefono'] ?? null,
+            'membresia_id' => null,
+            'membresia' => null,
+            'vigencia_hasta' => null,
+            'estado' => 'inactiva',
+        ]);
 
         return redirect()
             ->route('clientes.index')
-            ->with('success', 'Cliente registrado correctamente.');
+            ->with('success', 'Cliente registrado correctamente. Queda pendiente de pago para activar su membresía.');
     }
 
     public function show(Cliente $cliente)
@@ -124,7 +122,6 @@ class ClienteController extends Controller
             ->sum('monto');
 
         $totalPagos = $cliente->pagos->count();
-
         $totalAsistencias = $cliente->asistencias->count();
 
         $accesosPermitidos = $cliente->asistencias
@@ -154,11 +151,7 @@ class ClienteController extends Controller
 
     public function edit(Cliente $cliente)
     {
-        $membresias = Membresia::where('estado', 'activa')
-            ->orderBy('precio')
-            ->get();
-
-        return view('clientes.edit', compact('cliente', 'membresias'));
+        return view('clientes.edit', compact('cliente'));
     }
 
     public function update(Request $request, Cliente $cliente)
@@ -166,21 +159,14 @@ class ClienteController extends Controller
         $data = $request->validate([
             'nombre' => ['required', 'string', 'min:3', 'max:80'],
             'telefono' => ['nullable', 'string', 'max:15'],
-            'membresia_id' => ['required', 'exists:membresias,id'],
-            'vigencia_hasta' => ['required', 'date'],
             'estado' => ['required', 'in:activa,inactiva'],
         ]);
-
-        $membresia = Membresia::findOrFail($data['membresia_id']);
-
-        // Se conserva para compatibilidad con datos antiguos.
-        $data['membresia'] = strtolower($membresia->nombre);
 
         $cliente->update($data);
 
         return redirect()
             ->route('clientes.index')
-            ->with('success', 'Cliente actualizado correctamente.');
+            ->with('success', 'Datos del cliente actualizados correctamente.');
     }
 
     public function destroy(Cliente $cliente)
