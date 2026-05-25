@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         View::composer('dashboard', function ($view) {
             $view->with('clima', app(OpenMeteoService::class)->obtenerClimaActual());
         });
