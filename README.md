@@ -13,15 +13,9 @@
   </p>
   <h4>Integrantes del Equipo 5</h4>
   <p>
-    Flores Santiago Wilver Alfredo<br>
     Cruz Sánchez Jhoan Marvin<br>
-    Valencia Durán José Eduardo<br>
-    Espinoza de la Rosa Uriel<br>
-    Monterrubio Díaz Luis Mario<br>
-    Pacheco Cruz Diego
   </p>
   <p><strong>Oaxaca de Juárez, Oaxaca · 2026</strong></p>
-  <p><a href="https://github.com/WilverAFS/TrabajITO-Backend">Repositorio del backend</a></p>
   <p><strong>Estado:</strong> En desarrollo &nbsp;·&nbsp; <strong>Método de trabajo:</strong> Kanban</p>
 </div>
 
