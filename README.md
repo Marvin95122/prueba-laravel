@@ -39,13 +39,11 @@ Las áreas funcionales previstas para el backend son:
 - **Contratación:** solicitudes de servicio, seguimiento y publicaciones de trabajos realizados.
 - **Administración:** supervisión de usuarios, contenidos, reportes y verificaciones.
 
-> **Estado actual:** el repositorio contiene la base de Laravel y se encuentra en desarrollo. Los módulos mencionados describen el alcance **previsto**; no implican que todos estén implementados. El frontend en React y la administración de la base de datos se desarrollan en sus actividades correspondientes.
-
 ## 3. Tecnologías
 
 | Tecnología | Uso |
 |---|---|
-| PHP 8.3 o superior | Lenguaje del servidor (entorno local validado con PHP 8.4.26). |
+| PHP 8.3 o superior | Lenguaje del servidor. |
 | Laravel 13 | Framework del backend. |
 | Composer | Gestión de dependencias PHP. |
 | PostgreSQL | Sistema de gestión de bases de datos seleccionado para TrabajITO. |
@@ -62,7 +60,7 @@ Antes de instalar el backend, verifica que tengas:
 - **PHP 8.3 o superior**, con extensiones habituales de Laravel y `pdo_pgsql` para trabajar con PostgreSQL.
 - **Composer** instalado y accesible desde la terminal.
 - **Git** y acceso al repositorio.
-- **PostgreSQL** y sus credenciales cuando el responsable de base de datos haya preparado la configuración correspondiente.
+- **PostgreSQL** y sus credenciales.
 
 Para comprobar las herramientas principales en PowerShell:
 
@@ -113,7 +111,7 @@ QUEUE_CONNECTION=sync
 
 La configuración de PostgreSQL (`DB_CONNECTION=pgsql`, host, puerto, base de datos, usuario y contraseña) deberá establecerse **localmente**, de acuerdo con la configuración que proporcione el responsable de base de datos. **No subas credenciales al repositorio.**
 
-> **Importante:** no ejecutes `php artisan migrate` ni `composer run setup` sin coordinarte con el responsable de la base de datos. El comando `setup` del proyecto puede ejecutar migraciones.
+> **Importante:** no ejecutar `php artisan migrate` ni `composer run setup` sin coordinarse con el equipo. El comando `setup` del proyecto puede ejecutar migraciones.
 
 ### 5.4 Verificar Laravel e iniciar el servidor
 
@@ -210,4 +208,4 @@ Proyecto académico del **Equipo 5** de Ingeniería en Sistemas Computacionales,
 
 ---
 
-*TrabajITO — Proyecto integrador de Gestión de Proyectos de Software. Documentación sujeta a actualización conforme avance el desarrollo.*
+*TrabajITO — Proyecto integrador de Gestión de Proyectos de Software.*
